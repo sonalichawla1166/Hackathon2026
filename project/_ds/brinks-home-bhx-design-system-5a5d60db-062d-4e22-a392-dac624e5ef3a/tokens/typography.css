@@ -1,0 +1,47 @@
+/* Root font size is 18px ($pixel-base: 18), so 1rem = 18px throughout.
+   Heading sizes are the desktop (>=992px) values from app279 assets/css/global.css;
+   the -sm variants are the mobile (>=320px) values. */
+:root{
+  --rem-base:18px;
+
+  --font-heading:"Work Sans",sans-serif;
+  --font-body:"Roboto-Regular","Work Sans",sans-serif;
+  --font-display:"Nib","Work Sans",serif;
+  --font-medium:"Roboto-Medium","Work Sans",sans-serif;
+  --font-bold:"Roboto-Bold","Work Sans",sans-serif;
+
+  --fw-light:300; /* @kind font */
+  --fw-normal:400; /* @kind font */
+  --fw-medium:500; /* @kind font */
+  --fw-semibold:600; /* @kind font */
+  --fw-bold:700; /* @kind font */
+  --fw-extra-bold:800; /* @kind font */
+  --fw-black:900; /* @kind font */
+
+  /* Headings — desktop */
+  --h1-size:2.667rem;   --h1-line:55px;  --h1-weight:700;
+  --h2-size:2.11rem;    --h2-line:45px;  --h2-weight:700;
+  --h3-size:1.44rem;    --h3-line:33px;  --h3-weight:700;
+  --h4-size:1.33rem;    --h4-line:31px;  --h4-weight:700;
+  --h5-size:1.11rem;    --h5-line:27px;  --h5-weight:700;
+  --h6-size:0.89rem;    --h6-line:25px;  --h6-weight:600;
+
+  /* Headings — mobile */
+  --h1-size-sm:1.778rem; --h1-line-sm:39px;
+  --h2-size-sm:1.556rem; --h2-line-sm:35px;
+  --h3-size-sm:1.444rem; --h3-line-sm:33px;
+  --h4-size-sm:1.333rem; --h4-line-sm:31px;
+  --h5-size-sm:1.111rem; --h5-line-sm:27px;
+
+  /* Body */
+  --text-size:0.89rem;      --text-line:24px;
+  --text-big-size:1.333rem; --text-big-line:31px;
+  --text-small-size:0.667rem;--text-small-line:19px;
+  --lead-size:1.167rem;
+  --btn-size:0.8099rem;      /* h6 * caps ratio 0.91 */
+  --caps-letter-spacing:0.025em; /* @kind font */
+  --caps-weight:800; /* @kind font */
+  --line-height-base:1.618; /* @kind font */  /* golden ratio */
+  --line-height-compact:1.25; /* @kind font */
+  --line-height-heading:1.33; /* @kind font */
+}

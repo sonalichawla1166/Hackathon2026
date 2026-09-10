@@ -1,0 +1,12 @@
+/* Short, plain easing. The brand has no bounces or springs. */
+:root{
+  --duration-fast:100ms; /* @kind other */
+  --duration:200ms; /* @kind other */
+  --duration-slow:300ms; /* @kind other */
+  --ease-out:ease-out; /* @kind other */
+  --ease-in-out:ease-in-out; /* @kind other */
+  --transition-card:box-shadow 100ms ease-out, transform 200ms ease-out; /* @kind other */
+  --transition-chevron:transform 300ms ease-in-out; /* @kind other */
+  --transition-accordion:grid-template-rows 200ms; /* @kind other */
+  --card-hover-lift:translate(0,-2px); /* @kind other */
+}

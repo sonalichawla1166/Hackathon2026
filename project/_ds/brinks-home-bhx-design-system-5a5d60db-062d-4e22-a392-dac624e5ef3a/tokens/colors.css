@@ -1,0 +1,69 @@
+/* Brinks Home rebrand palette — values lifted verbatim from
+   bhs-shared-assets/src/scss/settings/_settings.bootstrap.custom.scss */
+:root{
+  /* Base palette */
+  --bhs-white:#FFFFFF;
+  --bhs-black:#000000;
+  --bhs-warm-gray:#DCD8D1;
+  --bhs-dark-gray:#373B3D;
+  --bhs-dark-blue:#0F2835;
+  --bhs-light-blue:#1E5B71;
+  --bhs-dark-green:#1D3A2F;
+  --bhs-light-green:#2D5E43;
+  --bhs-dark-purple:#351121;
+  --bhs-light-purple:#672F59;
+  --bhs-blue-1:#253541;
+  --bhs-blue-2:#285566;
+  --bhs-blue-3:#37657A;
+  --bhs-blue-4:#4D6F84;
+  --bhs-blue-5:#738998;
+  --bhs-blue-6:#14779B;
+  --bhs-ctagreen:#17824A;
+  --bhs-ctagreen-hover:#09A854;
+  --bhs-red:#E61E2E;
+
+  /* Neutral ramp (bootstrap grays as customised) */
+  --gray-100:#DCD8D1;
+  --gray-200:#ECEEEF;
+  --gray-600:#373B3D;
+  --gray-700:#55595C;
+  --gray-800:#364D59;
+
+  /* Transparencies */
+  --brinks-blue-trans:rgba(15,40,53,.7);
+  --black-trans:rgba(0,0,0,.35);
+  --black-trans-dark:rgba(0,0,0,.5);
+  --white-muted:rgba(255,255,255,.73);
+  --white-muted-darker:rgba(255,255,255,.9);
+  --overlay-scrim:rgba(40,67,84,.90196);
+  --tab-idle-bg:rgba(40,67,84,.12);
+  --tab-idle-border:rgba(40,67,84,.8);
+
+  /* Semantic aliases */
+  --color-primary:var(--bhs-dark-blue);
+  --color-secondary:var(--bhs-dark-gray);
+  --color-accent:var(--bhs-light-blue);
+  --color-cta:var(--bhs-ctagreen);
+  --color-cta-hover:var(--bhs-ctagreen-hover);
+  --color-danger:var(--bhs-red);
+
+  --surface-page:var(--bhs-white);
+  --surface-card:var(--bhs-white);
+  --surface-inverse:var(--bhs-dark-blue);
+  --surface-accent:var(--bhs-light-blue);
+  --surface-footer:var(--bhs-blue-1);
+  --surface-muted:var(--bhs-warm-gray);
+
+  --text-body:var(--bhs-dark-blue);
+  --text-heading:var(--bhs-dark-blue);
+  --text-muted:var(--bhs-dark-gray);
+  --text-inverse:var(--bhs-white);
+  --text-inverse-muted:var(--white-muted);
+  --text-link:var(--bhs-dark-blue);
+  --text-link-hover:#0A1B24;
+
+  --border-default:var(--bhs-light-blue);
+  --border-inverse:rgba(255,255,255,.35);
+  --border-hairline:#7E8183;
+  --rule-accent:var(--bhs-light-blue);
+}

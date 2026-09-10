@@ -1,0 +1,23 @@
+/* Radii, borders and the shadow system. */
+:root{
+  --radius-sm:0.18rem;
+  --radius:0.18rem;
+  --radius-lg:0.3rem;
+  --radius-btn:5px;      /* .btn-ctagreen / .btn-lg override in BHX global.css */
+  --radius-pill:2rem;
+  --radius-circle:50%;
+
+  --border-width:0.125rem;
+  --border-width-btn:2px;
+  --frame-width:0.111rem;
+
+  --shadow-header:0 2px 6px 0 rgba(0,0,0,.08);
+  --shadow-btn:0 2px 6px 1px rgba(0,0,0,.18);
+  --shadow-btn-inset-active:inset 0 3px 5px rgba(0,0,0,.125);
+  --shadow-card:2px 3px 1px 1px rgba(0,0,0,.06);
+  --shadow-card-hover:2px 4px 3px 1px rgba(0,0,0,.08);
+  --shadow-dropdown:0 4px 6px rgba(0,0,0,.1);
+  --shadow-floating:0 2px 5px rgba(0,0,0,.35);
+  --shadow-popover:0 .5rem .75rem .2rem rgba(0,0,0,.6);
+  --text-shadow:0 1px 1px rgba(0,0,0,.1);
+}

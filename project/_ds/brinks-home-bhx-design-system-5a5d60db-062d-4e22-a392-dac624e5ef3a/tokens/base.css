@@ -1,0 +1,7 @@
+/* Page-level base, from bhs-shared-assets/src/scss/base/_base.page.scss.
+   The whole system is authored against an 18px root — without this, every rem
+   token renders 11% small. */
+html{font-size:18px}
+body{min-height:100%;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;font-family:var(--font-body);font-size:var(--text-size);line-height:var(--line-height-base);color:var(--text-body)}
+a{color:var(--text-link)}
+a:hover{color:var(--text-link-hover)}
