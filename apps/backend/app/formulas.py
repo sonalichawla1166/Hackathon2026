@@ -25,10 +25,10 @@ from .data import (
 
 def bill_lines() -> list[dict]:
     lines = [
-        {"label": "Basic service charge", "amount": usd(FIXED), "plain": "Fixed monthly charge for the meter and service line. Does not move with usage.", "bg": "#DCD8D1", "v": FIXED},
-        {"label": "Delivery, 1,240 kWh", "amount": usd(USAGE * DELIV), "plain": "Getting the electricity to you. Billed in two tiers, and 990 kWh landed in the higher one.", "bg": "#1E5B71", "v": USAGE * DELIV},
-        {"label": "Supply, 1,240 kWh", "amount": usd(USAGE * SUPPLY), "plain": "The energy itself at 11.28¢ per kWh. You are on the utility default supply, not an ESCO.", "bg": "#0F2835", "v": USAGE * SUPPLY},
-        {"label": "Taxes and surcharges", "amount": usd((FIXED + USAGE * RETAIL) * TAXRATE), "plain": "State and city taxes plus system benefit charges, applied to everything above.", "bg": "#17824A", "v": (FIXED + USAGE * RETAIL) * TAXRATE},
+        {"label": "Basic service charge", "amount": usd(FIXED), "plain": "Fixed monthly charge for the meter and service line. Does not move with usage.", "bg": "#938DA6", "v": FIXED},
+        {"label": "Delivery, 1,240 kWh", "amount": usd(USAGE * DELIV), "plain": "Getting the electricity to you. Billed in two tiers, and 990 kWh landed in the higher one.", "bg": "#9FC6D6", "v": USAGE * DELIV},
+        {"label": "Supply, 1,240 kWh", "amount": usd(USAGE * SUPPLY), "plain": "The energy itself at 11.28¢ per kWh. You are on the utility default supply, not an ESCO.", "bg": "#7A6F9E", "v": USAGE * SUPPLY},
+        {"label": "Taxes and surcharges", "amount": usd((FIXED + USAGE * RETAIL) * TAXRATE), "plain": "State and city taxes plus system benefit charges, applied to everything above.", "bg": "#93BFA0", "v": (FIXED + USAGE * RETAIL) * TAXRATE},
     ]
     total = sum(l["v"] for l in lines)
     for l in lines:
@@ -81,7 +81,7 @@ def rate_plans(portal_usage: float) -> list[dict]:
             "monthly": usd(p["monthlyV"]), "annual": usd0(p["monthlyV"] * 12),
             "isBest": is_best,
             "delta": "Lowest cost at this usage" if is_best else f"+{usd0((p['monthlyV'] - best['monthlyV']) * 12)} a year vs the best plan",
-            "deltaColor": "#17824A" if is_best else "#373B3D",
+            "deltaColor": "#93BFA0" if is_best else "#938DA6",
         })
     return out
 

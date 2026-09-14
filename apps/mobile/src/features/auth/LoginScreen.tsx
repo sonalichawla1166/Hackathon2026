@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { View, TextInput, Pressable, StyleSheet, ScrollView, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useUiStore, Surface } from '@/state/store';
-import { colors, radius, shadow, spacing } from '@/theme';
+import { colors, gradients, radius, shadow, spacing } from '@/theme';
 import { fontFamily } from '@/theme/typography';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -28,77 +29,87 @@ export function LoginScreen() {
   const canSubmit = email.trim().length > 0 && password.trim().length > 0 && role !== null;
 
   return (
-    <SafeAreaView style={styles.root}>
-      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-        <Card style={[styles.card, compact && styles.cardCompact]} padding={compact ? spacing.lg : spacing.xl}>
-          <Eyebrow>CG Infinity · OneGridAI</Eyebrow>
-          <H1 style={styles.title}>Sign in</H1>
-          <BodyText style={styles.subtitle}>
-            One AI layer, four surfaces — sign in and pick which one you're working in today.
-          </BodyText>
+    <LinearGradient colors={gradients.dusk} style={styles.root}>
+      <SafeAreaView style={styles.safe}>
+        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+          <Card style={[styles.card, compact && styles.cardCompact]} padding={compact ? spacing.lg : spacing.xl}>
+            <Eyebrow>CG Infinity · OneGridAI</Eyebrow>
+            <H1 style={styles.title}>Sign in</H1>
+            <BodyText style={styles.subtitle}>
+              One AI layer, five surfaces — sign in and pick which one you're working in today.
+            </BodyText>
 
-          <View style={styles.field}>
-            <Caption style={styles.label}>Email</Caption>
-            <TextInput
-              value={email}
-              onChangeText={setEmail}
-              placeholder="you@conedison.com"
-              placeholderTextColor={colors.textMuted}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              style={styles.input}
-            />
-          </View>
+            <View style={styles.field}>
+              <Caption style={styles.label}>Email</Caption>
+              <TextInput
+                value={email}
+                onChangeText={setEmail}
+                placeholder="you@conedison.com"
+                placeholderTextColor={colors.textMuted}
+                autoCapitalize="none"
+                keyboardType="email-address"
+                style={styles.input}
+              />
+            </View>
 
-          <View style={styles.field}>
-            <Caption style={styles.label}>Password</Caption>
-            <TextInput
-              value={password}
-              onChangeText={setPassword}
-              placeholder="••••••••"
-              placeholderTextColor={colors.textMuted}
-              secureTextEntry
-              style={styles.input}
-            />
-          </View>
+            <View style={styles.field}>
+              <Caption style={styles.label}>Password</Caption>
+              <TextInput
+                value={password}
+                onChangeText={setPassword}
+                placeholder="••••••••"
+                placeholderTextColor={colors.textMuted}
+                secureTextEntry
+                style={styles.input}
+              />
+            </View>
 
-          <Caption style={[styles.label, { marginTop: spacing.sm }]}>Sign in as</Caption>
-          <View style={styles.roleGrid}>
-            {ROLES.map((r) => {
-              const active = role === r.key;
-              return (
-                <Pressable
-                  key={r.key}
-                  onPress={() => setRole(r.key)}
-                  style={[styles.roleCard, active && styles.roleCardActive]}
-                >
-                  <H4 color={active ? '#fff' : colors.textHeading}>{r.label}</H4>
-                  <Caption color={active ? colors.textInverseMuted : colors.textMuted} style={styles.roleBlurb}>
-                    {r.blurb}
-                  </Caption>
-                </Pressable>
-              );
-            })}
-          </View>
+            <Caption style={[styles.label, { marginTop: spacing.sm }]}>Sign in as</Caption>
+            <View style={styles.roleGrid}>
+              {ROLES.map((r) => {
+                const active = role === r.key;
+                return (
+                  <Pressable key={r.key} onPress={() => setRole(r.key)} style={styles.roleCardWrap}>
+                    {active ? (
+                      <LinearGradient colors={gradients.brand} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[styles.roleCard, shadow.glow(colors.accent)]}>
+                        <H4 color="#fff">{r.label}</H4>
+                        <Caption color={colors.textInverseMuted} style={styles.roleBlurb}>
+                          {r.blurb}
+                        </Caption>
+                      </LinearGradient>
+                    ) : (
+                      <View style={styles.roleCard}>
+                        <H4 color={colors.textHeading}>{r.label}</H4>
+                        <Caption color={colors.textMuted} style={styles.roleBlurb}>
+                          {r.blurb}
+                        </Caption>
+                      </View>
+                    )}
+                  </Pressable>
+                );
+              })}
+            </View>
 
-          <Button
-            variant="cta"
-            size="md"
-            block
-            disabled={!canSubmit}
-            onPress={() => role && login(role)}
-            style={styles.submit}
-          >
-            Log in
-          </Button>
-        </Card>
-      </ScrollView>
-    </SafeAreaView>
+            <Button
+              variant="cta"
+              size="md"
+              block
+              disabled={!canSubmit}
+              onPress={() => role && login(role)}
+              style={styles.submit}
+            >
+              Log in
+            </Button>
+          </Card>
+        </ScrollView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.page },
+  root: { flex: 1 },
+  safe: { flex: 1 },
   scrollContent: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.lg },
   card: { width: '100%', maxWidth: 460, ...shadow.lifted },
   cardCompact: { maxWidth: '100%' },
@@ -107,7 +118,7 @@ const styles = StyleSheet.create({
   field: { marginBottom: spacing.md },
   label: { marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.6 },
   input: {
-    borderWidth: 2,
+    borderWidth: 1.5,
     borderColor: colors.borderMuted,
     borderRadius: radius.sm,
     paddingHorizontal: 12,
@@ -115,19 +126,17 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.body,
     fontSize: 14,
     color: colors.textBody,
-    backgroundColor: colors.surfaceCard,
+    backgroundColor: colors.surfaceMutedAlt,
   },
   roleGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: spacing.lg },
+  roleCardWrap: { flexGrow: 1, flexBasis: '47%' },
   roleCard: {
-    flexGrow: 1,
-    flexBasis: '47%',
-    borderWidth: 2,
+    borderWidth: 1.5,
     borderColor: colors.borderMuted,
     borderRadius: radius.md,
     padding: 12,
-    backgroundColor: colors.surfaceCard,
+    backgroundColor: colors.surfaceMutedAlt,
   },
-  roleCardActive: { backgroundColor: colors.primary, borderColor: colors.primary },
   roleBlurb: { marginTop: 4 },
   submit: { marginTop: spacing.xs },
 });

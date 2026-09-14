@@ -1,8 +1,10 @@
 import React from 'react';
 import { View, Pressable, Text, ScrollView, StyleSheet, useWindowDimensions } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useUiStore, OpsView } from '@/state/store';
-import { colors } from '@/theme';
+import { colors, gradients } from '@/theme';
 import { fontFamily } from '@/theme/typography';
+import { ScreenTransition } from '@/components/ui/ScreenTransition';
 import { MaintenanceQueue } from './MaintenanceQueue';
 import { DemandResponseView } from './DemandResponseView';
 
@@ -24,7 +26,12 @@ export function OpsDashboard() {
   return (
     <View style={styles.fill}>
       <View style={[styles.root, compact && styles.rootCompact]}>
-        <View style={[styles.sidebar, compact && styles.sidebarCompact]}>
+        <LinearGradient
+          colors={gradients.brand}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.sidebar, compact && styles.sidebarCompact]}
+        >
           <View style={compact ? styles.brandRowCompact : styles.brandBlock}>
             <View>
               <Text style={styles.brandTitle}>OneGridAI Ops</Text>
@@ -63,11 +70,13 @@ export function OpsDashboard() {
               <Text style={styles.footnoteText}>{FOOTNOTE}</Text>
             </View>
           )}
-        </View>
+        </LinearGradient>
 
         <ScrollView style={styles.content} contentContainerStyle={[styles.contentInner, compact && styles.contentInnerCompact]}>
-          {opsView === 'maint' && <MaintenanceQueue compact={compact} />}
-          {opsView === 'dr' && <DemandResponseView compact={compact} />}
+          <ScreenTransition key={opsView}>
+            {opsView === 'maint' && <MaintenanceQueue compact={compact} />}
+            {opsView === 'dr' && <DemandResponseView compact={compact} />}
+          </ScreenTransition>
           {compact && (
             <View style={styles.footnoteBlockCompact}>
               <Text style={styles.footnoteText}>{FOOTNOTE}</Text>
@@ -81,10 +90,10 @@ export function OpsDashboard() {
 
 const styles = StyleSheet.create({
   fill: { flex: 1, width: '100%' },
-  root: { flex: 1, flexDirection: 'row', backgroundColor: '#ECEEEF' },
+  root: { flex: 1, flexDirection: 'row', backgroundColor: colors.page },
   rootCompact: { flexDirection: 'column' },
 
-  sidebar: { width: 224, backgroundColor: colors.primary, paddingVertical: 22 },
+  sidebar: { width: 224, paddingVertical: 22 },
   sidebarCompact: { width: '100%', paddingVertical: 0 },
 
   brandBlock: {

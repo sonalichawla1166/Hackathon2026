@@ -1,8 +1,9 @@
 import React from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet, useWindowDimensions } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useUiStore } from '@/state/store';
 import { usePortalNav, usePortalRates, usePortalSolar } from '@/api/hooks';
-import { colors, radius } from '@/theme';
+import { colors, gradients, radius } from '@/theme';
 import { fontFamily } from '@/theme/typography';
 import { RangeSlider } from '@/components/ui/RangeSlider';
 import { LoadingState, ErrorState } from '@/components/ui/AsyncState';
@@ -80,7 +81,12 @@ function TopNav({ compact }: { compact: boolean }) {
 
 function Hero({ compact }: { compact: boolean }) {
   return (
-    <View style={[styles.hero, { paddingHorizontal: compact ? 20 : 40, paddingVertical: compact ? 28 : 44 }]}>
+    <LinearGradient
+      colors={gradients.brand}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={[styles.hero, { paddingHorizontal: compact ? 20 : 40, paddingVertical: compact ? 28 : 44 }]}
+    >
       <View style={styles.heroInner}>
         <Text style={[styles.heroTitle, { fontSize: compact ? 26 : 36, lineHeight: compact ? 31 : 41 }]}>
           See What You Would Pay on Every Rate Plan
@@ -90,7 +96,7 @@ function Hero({ compact }: { compact: boolean }) {
           residential plans against the current tariff.
         </Text>
       </View>
-    </View>
+    </LinearGradient>
   );
 }
 
@@ -187,7 +193,7 @@ const styles = StyleSheet.create({
   },
   logoutLabel: { fontFamily: fontFamily.bodyBold, fontSize: 12, color: '#fff' },
 
-  hero: { backgroundColor: colors.accent },
+  hero: {},
   heroInner: { maxWidth: 760 },
   heroTitle: { fontFamily: fontFamily.heading, color: '#fff' },
   heroBody: { fontFamily: fontFamily.body, fontSize: 15, lineHeight: 24, color: 'rgba(255,255,255,0.9)', marginTop: 12 },

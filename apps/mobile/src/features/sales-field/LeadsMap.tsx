@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
 import type { SalesLead } from '@/api/types';
-import { colors, radius, shadow } from '@/theme';
+import { colors, gradients, radius, shadow } from '@/theme';
 import { fontFamily } from '@/theme/typography';
 import { Badge } from '@/components/ui/Badge';
 import { outcomeColor } from './outcomeColors';
@@ -26,13 +27,18 @@ export function LeadsMap({ leads, onOpenLead }: { leads: SalesLead[]; onOpenLead
   const canvasH = VIEWPORT_HEIGHT * zoom;
 
   const canvas = (
-    <View style={[styles.canvas, { width: canvasW || '100%', height: canvasH }]}>
+    <LinearGradient
+      colors={gradients.brand}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={[styles.canvas, { width: canvasW || '100%', height: canvasH }]}
+    >
       <View style={styles.ring} />
       {leads.map((l) => (
         <Pin key={l.id} lead={l} active={l.id === activeId} onPress={() => setActiveId((cur) => (cur === l.id ? null : l.id))} />
       ))}
       <RepMarker />
-    </View>
+    </LinearGradient>
   );
 
   return (
@@ -163,7 +169,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     overflow: 'hidden',
   },
-  canvas: { backgroundColor: colors.primary },
+  canvas: {},
   ring: {
     position: 'absolute',
     left: '8%',

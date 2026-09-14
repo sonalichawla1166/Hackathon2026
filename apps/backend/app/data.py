@@ -174,10 +174,10 @@ ASSETS: list[AssetEntry] = [
 
 def risk_color(risk: float) -> str:
     if risk >= 0.8:
-        return "#E61E2E"
+        return "#D98D95"
     if risk >= 0.7:
-        return "#1E5B71"
-    return "#4D6F84"
+        return "#D9B98A"
+    return "#938DA6"
 
 
 @dataclass

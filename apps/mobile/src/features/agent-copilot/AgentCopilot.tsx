@@ -1,8 +1,9 @@
 import React from 'react';
 import { View, ScrollView, StyleSheet, useWindowDimensions } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useCopilotCall, useAdvanceCall, useUseSuggestion } from '@/api/hooks';
 import { useUiStore } from '@/state/store';
-import { colors, palette, radius, shadow } from '@/theme';
+import { colors, gradients, radius, shadow } from '@/theme';
 import { fontFamily } from '@/theme/typography';
 import { Eyebrow, BodyText, Caption } from '@/components/ui/Text';
 import { Button } from '@/components/ui/Button';
@@ -24,7 +25,12 @@ export function AgentCopilot() {
   const { callTimer, customer, transcript, facts, openAnomaly, suggestion, advanceLabel, useLabel, nextActions } = data;
 
   const left = (
-    <View style={[styles.leftCol, compact && styles.leftColCompact]}>
+    <LinearGradient
+      colors={gradients.brand}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={[styles.leftCol, compact && styles.leftColCompact]}
+    >
       <Eyebrow color={colors.textInverseMuted}>{'Live call · ' + callTimer}</Eyebrow>
       <BodyText color="#fff" style={styles.name}>{customer.name}</BodyText>
       <BodyText color={colors.textInverseMuted} style={styles.acctInfo}>
@@ -44,7 +50,7 @@ export function AgentCopilot() {
           {openAnomaly}
         </BodyText>
       </View>
-    </View>
+    </LinearGradient>
   );
 
   const center = (
@@ -157,13 +163,13 @@ export function AgentCopilot() {
 }
 
 const styles = StyleSheet.create({
-  fill: { flex: 1, backgroundColor: palette.gray200 },
-  stackContent: { backgroundColor: palette.gray200, flexGrow: 1 },
-  wideRow: { flex: 1, flexDirection: 'row', backgroundColor: palette.gray200 },
+  fill: { flex: 1, backgroundColor: colors.page },
+  stackContent: { backgroundColor: colors.page, flexGrow: 1 },
+  wideRow: { flex: 1, flexDirection: 'row', backgroundColor: colors.page },
 
   growContent: { flexGrow: 1 },
   leftColWide: { flex: 0, width: 270 },
-  leftCol: { flexGrow: 1, backgroundColor: colors.primary, padding: 22, paddingVertical: 24 },
+  leftCol: { flexGrow: 1, padding: 22, paddingVertical: 24 },
   leftColCompact: { flexGrow: undefined, padding: 22 },
   name: { fontFamily: fontFamily.heading, fontSize: 20, marginTop: 10, marginBottom: 4 },
   acctInfo: { fontSize: 12.5, lineHeight: 19 },
@@ -224,6 +230,6 @@ const styles = StyleSheet.create({
   chunkText: { fontSize: 11.5, lineHeight: 18, marginTop: 6 },
 
   actionsList: { gap: 7 },
-  actionRow: { backgroundColor: palette.gray200, borderRadius: radius.chip, paddingVertical: 10, paddingHorizontal: 12 },
+  actionRow: { backgroundColor: colors.surfaceMutedAlt, borderRadius: radius.chip, paddingVertical: 10, paddingHorizontal: 12 },
   actionText: { fontSize: 12.5, lineHeight: 18 },
 });

@@ -1,6 +1,6 @@
 import React from 'react';
 import { ActivityIndicator, Pressable, Text, View, StyleSheet } from 'react-native';
-import { colors } from '@/theme';
+import { colors, radius } from '@/theme';
 import { fontFamily } from '@/theme/typography';
 import { ApiError } from '@/api/client';
 
@@ -21,7 +21,7 @@ export function ErrorState({ error, onRetry }: { error: unknown; onRetry?: () =>
         ? error.message
         : 'Something went wrong.';
   return (
-    <View style={styles.wrap}>
+    <View style={[styles.wrap, styles.errorCard]}>
       <Text style={styles.errorTitle}>Couldn't reach the backend</Text>
       <Text style={styles.errorMessage}>{message}</Text>
       {onRetry && (
@@ -35,9 +35,10 @@ export function ErrorState({ error, onRetry }: { error: unknown; onRetry?: () =>
 
 const styles = StyleSheet.create({
   wrap: { padding: 32, alignItems: 'center', gap: 10 },
+  errorCard: { backgroundColor: colors.surfaceCard, borderRadius: radius.md, margin: 4, borderWidth: 1, borderColor: colors.danger + '40' },
   label: { fontFamily: fontFamily.body, fontSize: 13, color: colors.textMuted },
   errorTitle: { fontFamily: fontFamily.heading, fontSize: 15, color: colors.textHeading, textAlign: 'center' },
   errorMessage: { fontFamily: fontFamily.body, fontSize: 12.5, color: colors.textMuted, textAlign: 'center' },
-  retryBtn: { marginTop: 6, borderWidth: 2, borderColor: colors.primary, borderRadius: 5, paddingHorizontal: 14, paddingVertical: 8 },
-  retryText: { fontFamily: fontFamily.bodyBold, fontSize: 12.5, color: colors.primary },
+  retryBtn: { marginTop: 6, borderWidth: 1.5, borderColor: colors.accent, borderRadius: radius.sm, paddingHorizontal: 16, paddingVertical: 9 },
+  retryText: { fontFamily: fontFamily.bodyBold, fontSize: 12.5, color: colors.accent },
 });

@@ -18,8 +18,12 @@ export function Card({ children, style, inverse, muted, bordered, borderColor, p
       style={[
         styles.base,
         { padding },
-        inverse ? { backgroundColor: colors.surfaceInverse } : muted ? { backgroundColor: colors.surfaceMuted } : { backgroundColor: colors.surfaceCard, ...shadow.card },
-        bordered && { borderWidth: 2, borderColor: borderColor ?? colors.surfaceMuted, ...(inverse || muted ? {} : { shadowOpacity: 0 }) },
+        inverse
+          ? { backgroundColor: colors.surfaceInverse }
+          : muted
+            ? { backgroundColor: colors.surfaceMuted }
+            : { backgroundColor: colors.surfaceCard, ...shadow.card },
+        bordered && { borderWidth: 1.5, borderColor: borderColor ?? colors.borderHairline },
         style,
       ]}
     >
