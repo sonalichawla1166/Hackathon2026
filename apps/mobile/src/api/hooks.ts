@@ -13,6 +13,7 @@ import * as outagesApi from './outages';
 import * as paymentsApi from './payments';
 import * as portalApi from './portal';
 import * as programsApi from './programs';
+import * as salesApi from './sales';
 import * as simulateApi from './simulate';
 import type {
   AnomaliesResult,
@@ -192,5 +193,42 @@ export function useUseSuggestion() {
   return useMutation({
     mutationFn: copilotApi.useSuggestion,
     onSuccess: (data: CopilotCall) => qc.setQueryData(['copilot', 'call'], data),
+  });
+}
+
+// ---- Field sales: leads within range -----------------------------------------------
+
+export function useSalesLeads(lat: number, lng: number, radiusKm: number) {
+  return useQuery({
+    queryKey: ['sales', 'leads', lat, lng, radiusKm],
+    queryFn: () => salesApi.getLeads(lat, lng, radiusKm),
+  });
+}
+
+export function useSalesLeadDetail(id: string | null) {
+  return useQuery({
+    queryKey: ['sales', 'lead', id],
+    queryFn: () => salesApi.getLeadDetail(id as string),
+    enabled: id !== null,
+  });
+}
+
+export function useLogKnock() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, outcome, notes }: { id: string; outcome: string; notes: string }) =>
+      salesApi.logKnock(id, outcome, notes),
+    onSuccess: (data, vars) => {
+      qc.setQueryData(['sales', 'lead', vars.id], data.lead);
+      qc.invalidateQueries({ queryKey: ['sales', 'leads'] });
+      qc.invalidateQueries({ queryKey: ['sales', 'stats'] });
+    },
+  });
+}
+
+export function useSalesStats(lat: number, lng: number, radiusKm: number) {
+  return useQuery({
+    queryKey: ['sales', 'stats', lat, lng, radiusKm],
+    queryFn: () => salesApi.getStats(lat, lng, radiusKm),
   });
 }

@@ -304,3 +304,173 @@ PAY_OPTIONS = [
     {"label": "Bank account ending 8820", "detail": "No processing fee"},
     {"label": "Split into 3 payments", "detail": "Payment arrangement, no interest"},
 ]
+
+
+# ---------------------------------------------------------------------------
+# Field sales / door-to-door
+# ---------------------------------------------------------------------------
+
+# The rep's home base for the demo — same Hell's Kitchen / Clinton pocket of
+# Manhattan as ASSETS above, so the sales and ops surfaces read as the same
+# service territory. Real deployment would read this from the rep's device
+# GPS (see the mobile `useDeviceLocation` hook); this is the fallback.
+SALES_REP_BASE = {"lat": 40.7638, "lng": -73.9918}
+
+KNOCK_OUTCOMES = ["Sold", "Not home", "Not interested", "Callback requested", "Do not contact"]
+
+
+@dataclass
+class VisitEntry:
+    date: str
+    outcome: str
+    rep: str
+    notes: str
+
+
+@dataclass
+class LeadEntry:
+    id: str
+    address: str
+    unit: str | None
+    lat: float
+    lng: float
+    customer_name: str
+    account_status: str  # "Prospect" | "Existing customer" | "Lapsed customer"
+    segment: str
+    phone: str
+    notes: str
+    history: list[VisitEntry] = field(default_factory=list)
+
+
+# Addresses scattered around SALES_REP_BASE, mostly within ~10km (Manhattan,
+# western Queens, inner Brooklyn) with a few deliberately further out
+# (Yonkers, JFK-area Queens) to prove the radius filter actually excludes
+# something rather than just decorating every lead with a distance.
+LEADS: list[LeadEntry] = [
+    LeadEntry(
+        "LD-101", "412 W 47th St", "Apt 6B", 40.7614, -73.9908, "Priya Nair", "Existing customer",
+        "High bill dispute risk — called twice about September charges", "(917) 555-0142",
+        "Already an OneGridAI customer account (see Ops asset TX-4471 nearby). Good candidate for the EV Time-of-Use switch.",
+        [
+            VisitEntry("2026-08-14", "Not home", "J. Ortiz", "Tried early evening, no answer."),
+            VisitEntry("2026-08-28", "Callback requested", "J. Ortiz", "Spoke to husband, asked for a call after 6pm."),
+        ],
+    ),
+    LeadEntry(
+        "LD-102", "455 W 51st St", None, 40.7659, -73.9903, "Marcus Webb", "Prospect",
+        "No account on file — new-construction lease-up, 3 months old", "(646) 555-0118",
+        "Building manager confirmed 40 units, none enrolled yet. Ask for the leasing office contact.",
+        [],
+    ),
+    LeadEntry(
+        "LD-103", "530 W 45th St", "Apt 12", 40.7607, -73.9944, "Dana Kowalski", "Existing customer",
+        "Rate plan mismatch — flagged by the program engine, could save ~$180/yr", "(212) 555-0176",
+        "On SC 1 tiered but usage pattern matches EV Time-of-Use. Bring the side-by-side simulator.",
+        [
+            VisitEntry("2026-07-30", "Not interested", "S. Boone", "Said she was busy, did not want to talk rates."),
+        ],
+    ),
+    LeadEntry(
+        "LD-104", "601 W 57th St", None, 40.7712, -73.9884, "Con Edison West Yard", "Existing customer",
+        "Commercial account, high demand charge — solar/battery pitch candidate", "(212) 555-0199",
+        "Facilities office is on-site weekdays 8-4. Ask for facilities manager, not the front desk.",
+        [],
+    ),
+    LeadEntry(
+        "LD-105", "340 W 43rd St", "Apt 4F", 40.7581, -73.9908, "Renata Alves", "Lapsed customer",
+        "Service stopped 2025, unit re-listed — win-back opportunity", "(347) 555-0163",
+        "New tenant moved in per super. Confirm name before pitching — may not be Renata anymore.",
+        [
+            VisitEntry("2026-06-02", "Not home", "S. Boone", "Building door locked, buzzed no answer."),
+        ],
+    ),
+    LeadEntry(
+        "LD-106", "225 W 39th St", "Apt 9", 40.7551, -73.9899, "Tomas Reyes", "Prospect",
+        "High Con Ed spend history, no smart thermostat on record", "(718) 555-0187",
+        "Good fit for the demand-response program pitch, not just OneGridAI enrollment.",
+        [],
+    ),
+    LeadEntry(
+        "LD-107", "150 W 46th St", "Apt 21C", 40.7592, -73.9840, "Grace Lindqvist", "Existing customer",
+        "Solar-curious — asked the chat assistant about net metering twice", "(929) 555-0121",
+        "Chat log shows real interest. Bring the solar what-if printout.",
+        [
+            VisitEntry("2026-09-01", "Sold", "J. Ortiz", "Enrolled in rooftop solar assessment."),
+        ],
+    ),
+    LeadEntry(
+        "LD-108", "88 W 40th St", None, 40.7524, -73.9843, "Bryant Park Tower Mgmt", "Prospect",
+        "Large multi-family, master-metered common areas only so far", "(212) 555-0155",
+        "Pitch is the building's common-area account, not individual units.",
+        [
+            VisitEntry("2026-08-20", "Callback requested", "S. Boone", "Property manager wants a written proposal first."),
+        ],
+    ),
+    LeadEntry(
+        "LD-109", "10 Columbus Cir", "Apt 34A", 40.7685, -73.9822, "Helen Zhao", "Existing customer",
+        "Anomaly flagged last month — possible appliance fault, good rapport already", "(646) 555-0134",
+        "Already got the proactive anomaly alert in-app. Ask if the fridge issue got fixed.",
+        [],
+    ),
+    LeadEntry(
+        "LD-110", "500 W 30th St", "Apt 7", 40.7514, -74.0031, "Owen Fitzgerald", "Prospect",
+        "Hudson Yards new build, referred by a neighbor who enrolled", "(917) 555-0109",
+        "Warm referral from LD-107's building. Lead with that.",
+        [],
+    ),
+    LeadEntry(
+        "LD-111", "700 Columbus Ave", "Apt 15B", 40.7902, -73.9686, "Imani Carter", "Lapsed customer",
+        "Payment plan defaulted 2025, since paid off — eligible to re-enroll", "(347) 555-0198",
+        "Confirm the old balance shows $0 in account lookup before pitching re-enrollment.",
+        [
+            VisitEntry("2026-05-11", "Not interested", "J. Ortiz", "Still upset about the 2025 collections call."),
+            VisitEntry("2026-07-19", "Not home", "J. Ortiz", "Second attempt, no answer."),
+        ],
+    ),
+    LeadEntry(
+        "LD-112", "2109 Broadway", "Apt 3", 40.7799, -73.9814, "Felix Grant", "Prospect",
+        "Corner brownstone unit, no account on file", "(212) 555-0167",
+        "Doorman building — check in at the desk first, do not walk up.",
+        [],
+    ),
+    LeadEntry(
+        "LD-113", "31-10 Queens Blvd", "Apt 6", 40.7477, -73.9367, "Wei Cheng", "Existing customer",
+        "High usage, flagged for the demand-response cohort", "(718) 555-0144",
+        "Queens side of the territory — bundle with LD-114 on the same walk.",
+        [],
+    ),
+    LeadEntry(
+        "LD-114", "45-18 Court Sq", "Apt 11", 40.7473, -73.9445, "Sasha Petrov", "Prospect",
+        "New LIC high-rise, leasing office says 60% occupied so far", "(929) 555-0177",
+        "Ask leasing office for a lobby table slot rather than door-knocking every unit.",
+        [],
+    ),
+    LeadEntry(
+        "LD-115", "88 Schermerhorn St", "Apt 4", 40.6903, -73.9903, "Nadia Hassan", "Existing customer",
+        "Downtown Brooklyn, rate plan mismatch flagged", "(718) 555-0155",
+        "Brooklyn leg of the territory. Usually a longer walk from base — check the radius before routing here.",
+        [
+            VisitEntry("2026-08-05", "Callback requested", "S. Boone", "Asked for evening visit, works from home."),
+        ],
+    ),
+    LeadEntry(
+        "LD-116", "1 Fordham Plaza", "Apt 2", 40.8610, -73.8901, "Carlos Mendez", "Prospect",
+        "Bronx territory edge — likely outside the default 10km radius", "(347) 555-0122",
+        "Far edge of the assigned territory. Confirm the radius filter before driving out.",
+        [],
+    ),
+    LeadEntry(
+        "LD-117", "40 S Broadway", "Apt 8", 40.9312, -73.8987, "Julia Byrne", "Prospect",
+        "Yonkers — outside the standard territory radius, reassign if it shows up", "(914) 555-0133",
+        "Should not normally appear in a 10km pull from the Manhattan base.",
+        [],
+    ),
+    LeadEntry(
+        "LD-118", "144-33 Jamaica Ave", None, 40.7014, -73.7936, "Deshawn Price", "Prospect",
+        "Southeast Queens, well outside the default radius", "(718) 555-0111",
+        "Only relevant if the rep widens the radius past ~20km.",
+        [],
+    ),
+]
+
+LEADS_BY_ID: dict[str, LeadEntry] = {l.id: l for l in LEADS}

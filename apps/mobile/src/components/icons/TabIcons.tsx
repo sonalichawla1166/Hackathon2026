@@ -45,6 +45,29 @@ export function ForYouTabIcon({ size = 21, color = '#0F2835' }: IconProps) {
   );
 }
 
+// Not lifted from the design file (the Sales surface wasn't part of the
+// original handoff) — drawn to match the others' single-path, filled style.
+export function LeadsTabIcon({ size = 21, color = '#0F2835' }: IconProps) {
+  const w = (size * 60) / 84;
+  return (
+    <Svg width={w} height={size} viewBox="0 0 60 84" fill={color}>
+      <Path d="M30,1C14.5,1,2,13.5,2,29c0,20.7,26,52.6,27.1,53.9c0.2,0.3,0.6,0.4,0.9,0.4s0.7-0.1,0.9-0.4C31.9,81.6,58,49.7,58,29C58,13.5,45.5,1,30,1z M30,80.6C25.1,74.3,4,45.6,4,29C4,14.6,15.6,3,30,3s26,11.6,26,26C56,45.6,34.9,74.3,30,80.6z" />
+      <Path d="M30,16c-7.2,0-13,5.8-13,13s5.8,13,13,13s13-5.8,13-13S37.2,16,30,16z M30,40c-6.1,0-11-4.9-11-11s4.9-11,11-11s11,4.9,11,11S36.1,40,30,40z" />
+    </Svg>
+  );
+}
+
+export function StatsTabIcon({ size = 21, color = '#0F2835' }: IconProps) {
+  const w = (size * 84) / 84;
+  return (
+    <Svg width={w} height={size} viewBox="0 0 84 84" fill={color}>
+      <Path d="M14,83h-2c-2.8,0-5-2.2-5-5V52c0-2.8,2.2-5,5-5h2c2.8,0,5,2.2,5,5v26C19,80.8,16.8,83,14,83z M12,49c-1.7,0-3,1.3-3,3v26c0,1.7,1.3,3,3,3h2c1.7,0,3-1.3,3-3V52c0-1.7-1.3-3-3-3H12z" />
+      <Path d="M43,83h-2c-2.8,0-5-2.2-5-5V27c0-2.8,2.2-5,5-5h2c2.8,0,5,2.2,5,5v51C48,80.8,45.8,83,43,83z M41,24c-1.7,0-3,1.3-3,3v51c0,1.7,1.3,3,3,3h2c1.7,0,3-1.3,3-3V27c0-1.7-1.3-3-3-3H41z" />
+      <Path d="M72,83h-2c-2.8,0-5-2.2-5-5V6c0-2.8,2.2-5,5-5h2c2.8,0,5,2.2,5,5v72C77,80.8,74.8,83,72,83z M70,3c-1.7,0-3,1.3-3,3v72c0,1.7,1.3,3,3,3h2c1.7,0,3-1.3,3-3V6c0-1.7-1.3-3-3-3H70z" />
+    </Svg>
+  );
+}
+
 export function ReportTabIcon({ size = 21, color = '#0F2835' }: IconProps) {
   const w = (size * 79.4) / 83.9;
   return (

@@ -39,6 +39,17 @@ class Session:
     call_idx: int = 2
     used: bool = False
 
+    # Field sales: leadId -> list of {date, outcome, rep, notes} knocked
+    # during this session, layered on top of each lead's seed history.
+    sales_visits: dict[str, list[dict]] = field(default_factory=dict)
+
+    def log_knock(self, lead_id: str, outcome: str, notes: str) -> dict:
+        import datetime
+
+        visit = {"date": datetime.date.today().isoformat(), "outcome": outcome, "rep": "You", "notes": notes}
+        self.sales_visits.setdefault(lead_id, []).append(visit)
+        return visit
+
     def ask(self, question: str) -> ChatMessage:
         hit = find_kb_hit(question)
         self.log.append(ChatMessage(role="user", text=question))

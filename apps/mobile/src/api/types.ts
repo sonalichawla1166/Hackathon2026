@@ -214,3 +214,56 @@ export interface CopilotCall {
   useLabel: string;
   nextActions: string[];
 }
+
+// ---- Field sales / door-to-door -------------------------------------------
+
+export interface SalesVisit {
+  date: string;
+  outcome: string;
+  rep: string;
+  notes: string;
+}
+
+export interface SalesLead {
+  id: string;
+  address: string;
+  unit: string | null;
+  lat: number;
+  lng: number;
+  mapX: number;
+  mapY: number;
+  distanceKm: number;
+  distanceLabel: string;
+  customerName: string;
+  accountStatus: string;
+  segment: string;
+  phone: string;
+  notes: string;
+  visitCount: number;
+  lastOutcome: string | null;
+  lastVisitDate: string | null;
+  knockedToday: boolean;
+}
+
+export interface SalesLeadDetail extends SalesLead {
+  history: SalesVisit[];
+}
+
+export interface SalesLeadsResult {
+  repBase: { lat: number; lng: number };
+  radiusKm: number;
+  kpis: { k: string; v: string }[];
+  knockOutcomes: string[];
+  leads: SalesLead[];
+}
+
+export interface KnockResult {
+  lead: SalesLeadDetail;
+  ctaLabel: string;
+}
+
+export interface SalesStats {
+  today: { k: string; v: string }[];
+  knockedToday: { id: string; address: string; outcome: string | null }[];
+  suggestedRoute: { id: string; address: string; distanceLabel: string }[];
+}

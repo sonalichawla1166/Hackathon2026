@@ -162,6 +162,39 @@ same shape as `GET /copilot/call`.
 No body. Marks the current suggested answer as used. Returns the same shape
 as `GET /copilot/call`.
 
+## Field sales — door-to-door
+
+A fifth surface for a rep walking a territory. Leads are a fixed mock
+dataset (`LEADS` in `data.py`) of NYC-area addresses with lat/lng; distance
+is real haversine math from either the rep's device GPS (sent as `lat`/`lng`)
+or the fallback `SALES_REP_BASE`. Knock outcomes logged this session persist
+per-session (same `X-Session-Id` mechanism as chat/enrollment) on top of each
+lead's seed visit history — they don't survive a backend restart.
+
+### `GET /sales/leads?lat=&lng=&radiusKm=10`
+`lat`/`lng` (float, default `SALES_REP_BASE`), `radiusKm` (float, 1-50,
+default 10). Returns `{ repBase, radiusKm, kpis: [{k,v}], knockOutcomes:
+string[], leads: [Lead] }`, `leads` sorted nearest-first and already filtered
+to the radius. Each `Lead` has `mapX`/`mapY` (0-1, for the schematic map
+widget — not a real projection), `distanceKm`, `distanceLabel`,
+`knockedToday`, `lastOutcome`, `visitCount`.
+
+### `GET /sales/leads/{lead_id}`
+Same `Lead` shape plus `history: [{date, outcome, rep, notes}]`, most recent
+first (seed history merged with this session's logged knocks). 404 if the id
+doesn't exist.
+
+### `POST /sales/leads/{lead_id}/knock`
+Body: `{ outcome: string, notes?: string }`. `outcome` must be one of
+`knockOutcomes` (422 otherwise). Appends a visit dated today to this
+session's history for the lead. Returns `{ lead: LeadDetail, ctaLabel }`.
+
+### `GET /sales/stats?lat=&lng=&radiusKm=10`
+Today's tally (`today: [{k,v}]` — doors knocked, sold, conversion %),
+`knockedToday: [{id, address, outcome}]`, and `suggestedRoute` — a
+nearest-neighbour walking order (not a real TSP solve) over this session's
+not-yet-knocked leads in range, starting from `lat`/`lng`.
+
 ---
 
 ## Health

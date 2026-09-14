@@ -13,3 +13,8 @@ class OutageReportRequest(BaseModel):
 
 class PaymentRequest(BaseModel):
     method: int
+
+
+class KnockRequest(BaseModel):
+    outcome: str
+    notes: str = ""

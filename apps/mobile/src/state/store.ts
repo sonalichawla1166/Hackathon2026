@@ -10,9 +10,11 @@ import { Platform } from 'react-native';
 // "position" (slider value, checkbox picks, which row is selected) that
 // gets passed as a query param to a stateless GET, per API.md.
 
-export type Surface = 'app' | 'portal' | 'ops' | 'copilot';
+export type Surface = 'app' | 'portal' | 'ops' | 'copilot' | 'sales';
 export type AppScreen = 'home' | 'chat' | 'bill' | 'sim' | 'alert' | 'programs' | 'outage' | 'pay';
 export type OpsView = 'maint' | 'dr';
+export type SalesScreen = 'leads' | 'detail' | 'stats';
+export type LocationMode = 'territory' | 'device';
 
 // No backend auth exists yet — logging in just picks which surface's
 // session you land in, so only `session` needs to survive a web refresh.
@@ -66,13 +68,26 @@ interface UiState {
 
   drQueuedLocal: boolean;
   setDrQueuedLocal: (v: boolean) => void;
+
+  salesScreen: SalesScreen;
+  setSalesScreen: (s: SalesScreen) => void;
+
+  salesRadiusKm: number;
+  setSalesRadiusKm: (km: number) => void;
+
+  selectedLeadId: string | null;
+  selectLead: (id: string | null) => void;
+
+  locationMode: LocationMode;
+  setLocationMode: (m: LocationMode) => void;
 }
 
 export const useUiStore = create<UiState>()(
   persist(
     (set) => ({
       session: null,
-      login: (role) => set({ session: role, screen: 'home', opsView: 'maint' }),
+      login: (role) =>
+        set({ session: role, screen: 'home', opsView: 'maint', salesScreen: 'leads', selectedLeadId: null }),
       logout: () => set({ session: null }),
 
       screen: 'home',
@@ -115,6 +130,18 @@ export const useUiStore = create<UiState>()(
 
       drQueuedLocal: false,
       setDrQueuedLocal: (drQueuedLocal) => set({ drQueuedLocal }),
+
+      salesScreen: 'leads',
+      setSalesScreen: (salesScreen) => set({ salesScreen }),
+
+      salesRadiusKm: 10,
+      setSalesRadiusKm: (salesRadiusKm) => set({ salesRadiusKm }),
+
+      selectedLeadId: null,
+      selectLead: (selectedLeadId) => set({ selectedLeadId, salesScreen: selectedLeadId ? 'detail' : 'leads' }),
+
+      locationMode: 'territory',
+      setLocationMode: (locationMode) => set({ locationMode }),
     }),
     {
       name: 'onegridai-session',

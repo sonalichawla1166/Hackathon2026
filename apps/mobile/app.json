@@ -35,6 +35,12 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 120
         }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "OneGridAI uses your location to show nearby sales leads within your territory."
+        }
       ]
     ],
     "experiments": {

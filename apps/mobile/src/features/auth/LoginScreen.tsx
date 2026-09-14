@@ -13,6 +13,7 @@ const ROLES: { key: Surface; label: string; blurb: string }[] = [
   { key: 'portal', label: 'Public portal', blurb: 'Rate comparison and self-service, no account needed.' },
   { key: 'ops', label: 'Ops dashboard', blurb: 'Predictive maintenance and demand-response targeting.' },
   { key: 'copilot', label: 'Agent copilot', blurb: 'Live call assist with grounded, cited answers.' },
+  { key: 'sales', label: 'Field sales', blurb: 'Nearby leads within your territory, door-knocking and visit history.' },
 ];
 
 export function LoginScreen() {

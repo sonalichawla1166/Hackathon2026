@@ -8,6 +8,7 @@ import { CustomerApp } from '@/features/customer-app/CustomerApp';
 import { PublicPortal } from '@/features/public-portal/PublicPortal';
 import { OpsDashboard } from '@/features/ops-dashboard/OpsDashboard';
 import { AgentCopilot } from '@/features/agent-copilot/AgentCopilot';
+import { SalesFieldApp } from '@/features/sales-field/SalesFieldApp';
 
 export default function Home() {
   const session = useUiStore((s) => s.session);
@@ -23,6 +24,7 @@ export default function Home() {
         {session === 'portal' && <PublicPortal />}
         {session === 'ops' && <OpsDashboard />}
         {session === 'copilot' && <AgentCopilot />}
+        {session === 'sales' && <SalesFieldApp />}
       </View>
     </SafeAreaView>
   );

@@ -2,6 +2,8 @@
 (itself ported from the `renderVals()` method in the source prototype)."""
 from __future__ import annotations
 
+import math
+
 from .data import (
     ASSETS,
     DR_FILTERS,
@@ -17,6 +19,7 @@ from .data import (
     bill_for,
     risk_color,
     KWH_HISTORY,
+    LeadEntry,
 )
 
 
@@ -120,3 +123,93 @@ def dr_cohort(dr_picks: list[int]) -> dict:
         curve.append({"base": round(load - cut), "cut": cut})
 
     return {"drCount": dr_count, "mw": mw, "curve": curve}
+
+
+# ---------------------------------------------------------------------------
+# Field sales / door-to-door
+# ---------------------------------------------------------------------------
+
+EARTH_RADIUS_KM = 6371.0
+
+
+def haversine_km(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
+    p1, p2 = math.radians(lat1), math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlambda = math.radians(lng2 - lng1)
+    a = math.sin(dphi / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dlambda / 2) ** 2
+    return 2 * EARTH_RADIUS_KM * math.asin(min(1.0, math.sqrt(a)))
+
+
+def distance_label(km: float) -> str:
+    if km < 1:
+        return f"{round(km * 1000)} m"
+    return f"{km:.1f} km"
+
+
+def _map_xy(lat: float, lng: float, base_lat: float, base_lng: float, radius_km: float) -> tuple[float, float]:
+    """Projects a lead onto the [0,1] schematic-map square used by the mobile
+    UI (same convention as OUTAGE_PINS): the rep's base sits at the centre,
+    and the edge of the radius circle sits at 0.42 from centre, leaving a
+    margin. Purely illustrative — not a real map projection."""
+    dx_km = (lng - base_lng) * 111.32 * math.cos(math.radians(base_lat))
+    dy_km = (lat - base_lat) * 110.57
+    scale = 0.42 / radius_km if radius_km > 0 else 0
+    x = 0.5 + dx_km * scale
+    y = 0.5 - dy_km * scale
+    return max(0.04, min(0.96, x)), max(0.04, min(0.96, y))
+
+
+def lead_summary(lead: LeadEntry, base_lat: float, base_lng: float, radius_km: float, extra_visits: list[dict]) -> dict:
+    km = haversine_km(base_lat, base_lng, lead.lat, lead.lng)
+    history = [{"date": v.date, "outcome": v.outcome, "rep": v.rep, "notes": v.notes} for v in lead.history] + extra_visits
+    history.sort(key=lambda v: v["date"], reverse=True)
+    last = history[0] if history else None
+    x, y = _map_xy(lead.lat, lead.lng, base_lat, base_lng, radius_km)
+    return {
+        "id": lead.id,
+        "address": lead.address,
+        "unit": lead.unit,
+        "lat": lead.lat,
+        "lng": lead.lng,
+        "mapX": x,
+        "mapY": y,
+        "distanceKm": round(km, 2),
+        "distanceLabel": distance_label(km),
+        "customerName": lead.customer_name,
+        "accountStatus": lead.account_status,
+        "segment": lead.segment,
+        "phone": lead.phone,
+        "notes": lead.notes,
+        "visitCount": len(history),
+        "lastOutcome": last["outcome"] if last else None,
+        "lastVisitDate": last["date"] if last else None,
+        "knockedToday": any(v["date"] == _today() for v in history),
+    }
+
+
+def _today() -> str:
+    import datetime
+
+    return datetime.date.today().isoformat()
+
+
+def leads_in_range(leads: list[LeadEntry], base_lat: float, base_lng: float, radius_km: float, session_visits: dict[str, list[dict]]) -> list[dict]:
+    out = [lead_summary(l, base_lat, base_lng, radius_km, session_visits.get(l.id, [])) for l in leads]
+    out = [l for l in out if l["distanceKm"] <= radius_km]
+    out.sort(key=lambda l: l["distanceKm"])
+    return out
+
+
+def suggested_route(remaining: list[dict], base_lat: float, base_lng: float) -> list[dict]:
+    """Nearest-neighbour walking order over leads not yet knocked, starting
+    from the rep's current position. Good enough for a demo route summary —
+    not a real TSP solver."""
+    pool = list(remaining)
+    order: list[dict] = []
+    cur_lat, cur_lng = base_lat, base_lng
+    while pool:
+        nxt = min(pool, key=lambda l: haversine_km(cur_lat, cur_lng, l["lat"], l["lng"]))
+        order.append(nxt)
+        cur_lat, cur_lng = nxt["lat"], nxt["lng"]
+        pool.remove(nxt)
+    return order

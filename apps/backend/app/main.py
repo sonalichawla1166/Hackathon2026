@@ -3,7 +3,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routers import account, anomalies, bill, chat, copilot, ops, outages, payments, portal, programs, simulate
+from .routers import account, anomalies, bill, chat, copilot, ops, outages, payments, portal, programs, sales, simulate
 
 app = FastAPI(
     title="OneGridAI API",
@@ -37,6 +37,7 @@ app.include_router(payments.router)
 app.include_router(portal.router)
 app.include_router(ops.router)
 app.include_router(copilot.router)
+app.include_router(sales.router)
 
 
 @app.get("/health")
