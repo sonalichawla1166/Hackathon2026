@@ -1,0 +1,216 @@
+// Response shapes mirror `apps/backend/API.md` exactly — see that file for
+// the authoritative contract.
+
+export interface AccountSummary {
+  customer: { name: string; utility: string; accountLabel: string };
+  billTotal: string;
+  deltaPct: string;
+  deltaLabel: string;
+  history: { m: string; hPx: number; active: boolean }[];
+  alert: { title: string; detail: string };
+  topProgram: { name: string; match: number; blurb: string };
+}
+
+export interface ChatMessage {
+  role: 'bot' | 'user';
+  text: string;
+  cites: string[] | null;
+}
+
+export interface ChatResponse {
+  log: ChatMessage[];
+  suggestions: string[];
+}
+
+export interface BillLine {
+  label: string;
+  amount: string;
+  plain: string;
+  bg: string;
+  v: number;
+  pct: number;
+}
+
+export interface BillExplain {
+  period: string;
+  total: string;
+  lines: BillLine[];
+  whyItMoved: string;
+}
+
+export interface SimulateResult {
+  solarKw: number;
+  solarLabel: string;
+  billToday: string;
+  billWithSolar: string;
+  rows: { k: string; v: string }[];
+}
+
+export interface AnomaliesResult {
+  title: string;
+  detail: string;
+  intervals: { hPx: number; flagged: boolean }[];
+  impact: string;
+  ack: boolean;
+  ctaLabel: string;
+  ackNote: string | null;
+}
+
+export interface ProgramItem {
+  name: string;
+  why: string;
+  value: string;
+  match: number;
+  matchLabel: string;
+  enrolled: boolean;
+}
+
+export interface ProgramsResult {
+  intro: string;
+  programs: ProgramItem[];
+}
+
+export interface OutagePin {
+  x: number;
+  y: number;
+  d: number;
+  danger: boolean;
+}
+
+export interface OutageMap {
+  pins: OutagePin[];
+  caption: string;
+  portalCaption: string;
+  options: string[];
+}
+
+export interface OutageReportResult {
+  reported: boolean;
+  ticket: string;
+  detail: string;
+  note: string;
+  address: string;
+  meter: string;
+}
+
+export interface PaymentMethods {
+  amountDue: string;
+  dueDate: string;
+  options: { label: string; detail: string }[];
+  paid: boolean;
+}
+
+export interface PayResult {
+  paid: boolean;
+  confirmation: string;
+  note: string;
+}
+
+export interface PortalNav {
+  nav: string[];
+  poweredBy: string;
+}
+
+export interface RatePlanCard {
+  name: string;
+  desc: string;
+  monthly: string;
+  annual: string;
+  isBest: boolean;
+  delta: string;
+  deltaColor: string;
+}
+
+export interface PortalRates {
+  usage: number;
+  plans: RatePlanCard[];
+}
+
+export interface PortalSolar {
+  solarKw: number;
+  note: string;
+  stats: { k: string; v: string }[];
+}
+
+export interface FaqEntry {
+  q: string;
+  a: string;
+  cite: string;
+}
+
+export interface PortalFaqs {
+  faqs: FaqEntry[];
+}
+
+export interface AssetDriver {
+  k: string;
+  v: string;
+  w: string;
+}
+
+export interface OpsAsset {
+  id: string;
+  type: string;
+  loc: string;
+  age: string;
+  installed: string;
+  customers: number;
+  action: string;
+  drivers: AssetDriver[];
+  riskLabel: string;
+  riskPct: number;
+  riskColorValue: string;
+  dispatched: boolean;
+  dispatchLabel: string;
+}
+
+export interface OpsAssets {
+  kpis: { k: string; v: string }[];
+  columns: string[];
+  assets: OpsAsset[];
+}
+
+export interface DispatchResult {
+  id: string;
+  dispatched: boolean;
+  dispatchLabel: string;
+}
+
+export interface OpsDr {
+  windows: string[];
+  drCount: string;
+  curve: { base: number; cut: number }[];
+  stats: { k: string; v: string }[];
+  payload: string;
+}
+
+export interface DrQueueResult {
+  queued: boolean;
+  ctaLabel: string;
+}
+
+export interface RetrievedChunk {
+  src: string;
+  score: string;
+  text: string;
+}
+
+export interface CopilotSuggestion {
+  text: string;
+  cites: string[];
+  chunks: RetrievedChunk[];
+}
+
+export interface CopilotCall {
+  callTimer: string;
+  customer: { name: string; account: string; address: string };
+  transcript: { who: string; text: string }[];
+  facts: { k: string; v: string }[];
+  openAnomaly: string;
+  suggestion: CopilotSuggestion;
+  advanceLabel: string;
+  callComplete: boolean;
+  used: boolean;
+  useLabel: string;
+  nextActions: string[];
+}

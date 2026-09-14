@@ -1,0 +1,44 @@
+{
+  "expo": {
+    "name": "OneGridAI",
+    "slug": "onegridai",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "onegridai",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#DCD8D1",
+    "ios": {
+      "supportsTablet": true,
+      "backgroundColor": "#DCD8D1"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#DCD8D1",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "backgroundImage": "./assets/images/android-icon-background.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "single",
+      "favicon": "./assets/images/favicon.png",
+      "backgroundColor": "#DCD8D1"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#0F2835",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 120
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
