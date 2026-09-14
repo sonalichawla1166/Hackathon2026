@@ -3,7 +3,6 @@ import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
 import { useUiStore, AppScreen, SCREEN_TITLES } from '@/state/store';
 import { colors } from '@/theme';
 import { fontFamily } from '@/theme/typography';
-import { PhoneFrame } from '@/components/chrome/DeviceFrame';
 import { HomeTabIcon, ChatTabIcon, BillTabIcon, ForYouTabIcon, ReportTabIcon } from '@/components/icons/TabIcons';
 
 import { HomeScreen } from './screens/HomeScreen';
@@ -25,19 +24,20 @@ const TABS: { key: AppScreen; label: string; Icon: React.ComponentType<{ size?: 
 
 export function CustomerApp() {
   return (
-    <PhoneFrame>
+    <View style={styles.fill}>
       <CustomerAppShell />
-    </PhoneFrame>
+    </View>
   );
 }
 
 function CustomerAppShell() {
   const screen = useUiStore((s) => s.screen);
   const setScreen = useUiStore((s) => s.setScreen);
+  const logout = useUiStore((s) => s.logout);
 
   return (
     <View style={styles.shell}>
-      <Header title={SCREEN_TITLES[screen]} onBell={() => setScreen('alert')} />
+      <Header title={SCREEN_TITLES[screen]} onBell={() => setScreen('alert')} onLogout={logout} />
 
       <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent} keyboardShouldPersistTaps="handled">
         {screen === 'home' && <HomeScreen />}
@@ -55,17 +55,22 @@ function CustomerAppShell() {
   );
 }
 
-function Header({ title, onBell }: { title: string; onBell: () => void }) {
+function Header({ title, onBell, onLogout }: { title: string; onBell: () => void; onLogout: () => void }) {
   return (
     <View style={styles.header}>
       <View>
         <Text style={styles.headerEyebrow}>Con Edison · OneGridAI</Text>
         <Text style={styles.headerTitle}>{title}</Text>
       </View>
-      <Pressable onPress={onBell} style={styles.bell}>
-        <Text style={styles.bellGlyph}>!</Text>
-        <View style={styles.bellDot} />
-      </Pressable>
+      <View style={styles.headerActions}>
+        <Pressable onPress={onLogout} style={styles.logoutBtn}>
+          <Text style={styles.logoutLabel}>Log out</Text>
+        </Pressable>
+        <Pressable onPress={onBell} style={styles.bell}>
+          <Text style={styles.bellGlyph}>!</Text>
+          <View style={styles.bellDot} />
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -89,6 +94,7 @@ function TabBar({ current, onPick }: { current: AppScreen; onPick: (s: AppScreen
 }
 
 const styles = StyleSheet.create({
+  fill: { flex: 1, width: '100%' },
   shell: { flex: 1, backgroundColor: colors.surfaceCard },
   header: {
     backgroundColor: colors.primary,
@@ -100,6 +106,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 12,
   },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  logoutBtn: {
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 5,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.35)',
+  },
+  logoutLabel: { fontFamily: fontFamily.bodyBold, fontSize: 11, color: '#fff' },
   headerEyebrow: {
     fontFamily: fontFamily.bodyBlack,
     fontSize: 9,

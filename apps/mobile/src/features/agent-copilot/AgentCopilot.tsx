@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, ScrollView, StyleSheet, useWindowDimensions } from 'react-native';
 import { useCopilotCall, useAdvanceCall, useUseSuggestion } from '@/api/hooks';
+import { useUiStore } from '@/state/store';
 import { colors, palette, radius, shadow } from '@/theme';
 import { fontFamily } from '@/theme/typography';
-import { BrowserFrame } from '@/components/chrome/DeviceFrame';
 import { Eyebrow, BodyText, Caption } from '@/components/ui/Text';
 import { Button } from '@/components/ui/Button';
 import { CitationRow } from '@/components/ui/Citation';
@@ -12,6 +12,7 @@ import { LoadingState, ErrorState } from '@/components/ui/AsyncState';
 export function AgentCopilot() {
   const { width } = useWindowDimensions();
   const compact = width < 900;
+  const logout = useUiStore((s) => s.logout);
 
   const { data, isPending, isError, error, refetch } = useCopilotCall();
   const advance = useAdvanceCall();
@@ -55,9 +56,14 @@ export function AgentCopilot() {
             Same brain as the customer chat, same retrieval index, agent-facing prompt.
           </BodyText>
         </View>
-        <Button variant="primary" size="md" onPress={() => advance.mutate()} disabled={advance.isPending}>
-          {advanceLabel}
-        </Button>
+        <View style={styles.headerActions}>
+          <Button variant="outlineDark" size="md" onPress={logout}>
+            Log out
+          </Button>
+          <Button variant="primary" size="md" onPress={() => advance.mutate()} disabled={advance.isPending}>
+            {advanceLabel}
+          </Button>
+        </View>
       </View>
 
       <View style={[styles.transcriptCard, compact && styles.transcriptCardCompact]}>
@@ -126,7 +132,7 @@ export function AgentCopilot() {
   );
 
   return (
-    <BrowserFrame url="ops.onegridai.internal/copilot/call-88214">
+    <View style={styles.fill}>
       {compact ? (
         <ScrollView style={styles.fill} contentContainerStyle={styles.stackContent}>
           {left}
@@ -146,7 +152,7 @@ export function AgentCopilot() {
           </ScrollView>
         </View>
       )}
-    </BrowserFrame>
+    </View>
   );
 }
 
@@ -180,6 +186,7 @@ const styles = StyleSheet.create({
   centerCol: { flexGrow: 1, padding: 24, paddingHorizontal: 28, gap: 16 },
   centerColCompact: { flexGrow: undefined, padding: 22 },
   centerHeader: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: 18, flexWrap: 'wrap' },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   h2: { fontFamily: fontFamily.heading, fontSize: 24, lineHeight: 28 },
   centerSubtitle: { fontSize: 13, lineHeight: 19, marginTop: 6 },
   transcriptCard: {

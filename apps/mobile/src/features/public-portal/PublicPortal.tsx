@@ -1,12 +1,10 @@
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet, useWindowDimensions } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet, useWindowDimensions } from 'react-native';
 import { useUiStore } from '@/state/store';
 import { usePortalNav, usePortalRates, usePortalSolar } from '@/api/hooks';
 import { colors, radius } from '@/theme';
 import { fontFamily } from '@/theme/typography';
-import { Button } from '@/components/ui/Button';
 import { RangeSlider } from '@/components/ui/RangeSlider';
-import { BrowserFrame } from '@/components/chrome/DeviceFrame';
 import { LoadingState, ErrorState } from '@/components/ui/AsyncState';
 import { RatePlanCards } from './RatePlanCards';
 import { FaqAccordion } from './FaqAccordion';
@@ -22,9 +20,9 @@ import { OutageMapWidget } from './OutageMapWidget';
  */
 export function PublicPortal() {
   return (
-    <BrowserFrame url="conedison.com/rates/compare">
+    <View style={styles.fill}>
       <PortalBody />
-    </BrowserFrame>
+    </View>
   );
 }
 
@@ -54,6 +52,7 @@ function PortalBody() {
 
 function TopNav({ compact }: { compact: boolean }) {
   const { data } = usePortalNav();
+  const logout = useUiStore((s) => s.logout);
 
   return (
     <View style={[styles.nav, { paddingHorizontal: compact ? 20 : 40 }]}>
@@ -71,9 +70,9 @@ function TopNav({ compact }: { compact: boolean }) {
       </View>
       <View style={styles.navRight}>
         {!compact && !!data && <Text style={styles.poweredBy}>{data.poweredBy}</Text>}
-        <Button variant="cta" size="md">
-          Sign in
-        </Button>
+        <Pressable onPress={logout} style={styles.logoutBtn}>
+          <Text style={styles.logoutLabel}>Log out</Text>
+        </Pressable>
       </View>
     </View>
   );
@@ -159,6 +158,7 @@ function SolarCard() {
 }
 
 const styles = StyleSheet.create({
+  fill: { flex: 1, width: '100%' },
   scroll: { flex: 1, width: '100%', backgroundColor: colors.surfaceCard },
   scrollContent: { flexGrow: 1, paddingBottom: 24 },
 
@@ -178,6 +178,14 @@ const styles = StyleSheet.create({
   navItem: { fontFamily: fontFamily.body, fontSize: 14, color: 'rgba(255,255,255,0.73)' },
   navRight: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   poweredBy: { fontFamily: fontFamily.body, fontSize: 12, color: 'rgba(255,255,255,0.73)' },
+  logoutBtn: {
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    borderRadius: 5,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.35)',
+  },
+  logoutLabel: { fontFamily: fontFamily.bodyBold, fontSize: 12, color: '#fff' },
 
   hero: { backgroundColor: colors.accent },
   heroInner: { maxWidth: 760 },

@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Pressable, Text, ScrollView, StyleSheet, useWindowDimensions } from 'react-native';
-import { BrowserFrame } from '@/components/chrome/DeviceFrame';
 import { useUiStore, OpsView } from '@/state/store';
 import { colors } from '@/theme';
 import { fontFamily } from '@/theme/typography';
@@ -20,14 +19,20 @@ export function OpsDashboard() {
   const compact = width < 900;
   const opsView = useUiStore((s) => s.opsView);
   const setOpsView = useUiStore((s) => s.setOpsView);
+  const logout = useUiStore((s) => s.logout);
 
   return (
-    <BrowserFrame url="ops.onegridai.internal/maintenance">
+    <View style={styles.fill}>
       <View style={[styles.root, compact && styles.rootCompact]}>
         <View style={[styles.sidebar, compact && styles.sidebarCompact]}>
           <View style={compact ? styles.brandRowCompact : styles.brandBlock}>
-            <Text style={styles.brandTitle}>OneGridAI Ops</Text>
-            {!compact && <Text style={styles.brandSubtitle}>Con Edison · Manhattan West</Text>}
+            <View>
+              <Text style={styles.brandTitle}>OneGridAI Ops</Text>
+              {!compact && <Text style={styles.brandSubtitle}>Con Edison · Manhattan West</Text>}
+            </View>
+            <Pressable onPress={logout} style={styles.logoutRow}>
+              <Text style={styles.logoutLabel}>Log out</Text>
+            </Pressable>
           </View>
 
           <View style={[styles.navList, compact && styles.navListCompact]}>
@@ -70,21 +75,45 @@ export function OpsDashboard() {
           )}
         </ScrollView>
       </View>
-    </BrowserFrame>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  fill: { flex: 1, width: '100%' },
   root: { flex: 1, flexDirection: 'row', backgroundColor: '#ECEEEF' },
   rootCompact: { flexDirection: 'column' },
 
   sidebar: { width: 224, backgroundColor: colors.primary, paddingVertical: 22 },
   sidebarCompact: { width: '100%', paddingVertical: 0 },
 
-  brandBlock: { paddingHorizontal: 20, paddingBottom: 20 },
-  brandRowCompact: { paddingHorizontal: 16, paddingTop: 14, paddingBottom: 8 },
+  brandBlock: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  brandRowCompact: {
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    paddingBottom: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
   brandTitle: { fontFamily: fontFamily.heading, fontSize: 16, color: '#fff' },
   brandSubtitle: { fontFamily: fontFamily.body, fontSize: 11, color: 'rgba(255,255,255,0.73)', marginTop: 4 },
+  logoutRow: {
+    paddingVertical: 5,
+    paddingHorizontal: 9,
+    borderRadius: 5,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.35)',
+  },
+  logoutLabel: { fontFamily: fontFamily.bodyBold, fontSize: 10.5, color: '#fff' },
 
   navList: {},
   navListCompact: { flexDirection: 'row', paddingHorizontal: 16, paddingBottom: 12, gap: 8 },
