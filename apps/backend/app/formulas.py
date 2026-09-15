@@ -159,12 +159,20 @@ def _map_xy(lat: float, lng: float, base_lat: float, base_lng: float, radius_km:
     return max(0.04, min(0.96, x)), max(0.04, min(0.96, y))
 
 
-def lead_summary(lead: LeadEntry, base_lat: float, base_lng: float, radius_km: float, extra_visits: list[dict]) -> dict:
+def lead_summary(
+    lead: LeadEntry,
+    base_lat: float,
+    base_lng: float,
+    radius_km: float,
+    extra_visits: list[dict],
+    stage_overrides: dict[str, str] | None = None,
+) -> dict:
     km = haversine_km(base_lat, base_lng, lead.lat, lead.lng)
     history = [{"date": v.date, "outcome": v.outcome, "rep": v.rep, "notes": v.notes} for v in lead.history] + extra_visits
     history.sort(key=lambda v: v["date"], reverse=True)
     last = history[0] if history else None
     x, y = _map_xy(lead.lat, lead.lng, base_lat, base_lng, radius_km)
+    stage = (stage_overrides or {}).get(lead.id, lead.stage)
     return {
         "id": lead.id,
         "address": lead.address,
@@ -177,6 +185,7 @@ def lead_summary(lead: LeadEntry, base_lat: float, base_lng: float, radius_km: f
         "distanceLabel": distance_label(km),
         "customerName": lead.customer_name,
         "accountStatus": lead.account_status,
+        "stage": stage,
         "segment": lead.segment,
         "phone": lead.phone,
         "notes": lead.notes,
@@ -193,11 +202,37 @@ def _today() -> str:
     return datetime.date.today().isoformat()
 
 
-def leads_in_range(leads: list[LeadEntry], base_lat: float, base_lng: float, radius_km: float, session_visits: dict[str, list[dict]]) -> list[dict]:
-    out = [lead_summary(l, base_lat, base_lng, radius_km, session_visits.get(l.id, [])) for l in leads]
+def leads_in_range(
+    leads: list[LeadEntry],
+    base_lat: float,
+    base_lng: float,
+    radius_km: float,
+    session_visits: dict[str, list[dict]],
+    stage_overrides: dict[str, str] | None = None,
+) -> list[dict]:
+    out = [lead_summary(l, base_lat, base_lng, radius_km, session_visits.get(l.id, []), stage_overrides) for l in leads]
     out = [l for l in out if l["distanceKm"] <= radius_km]
     out.sort(key=lambda l: l["distanceKm"])
     return out
+
+
+def pipeline_board(
+    leads: list[LeadEntry],
+    stages: list[str],
+    base_lat: float,
+    base_lng: float,
+    session_visits: dict[str, list[dict]],
+    stage_overrides: dict[str, str] | None = None,
+) -> dict:
+    """All leads (not radius-filtered — pipeline management isn't about
+    today's walking distance) grouped by stage for the Kanban board, plus
+    per-stage counts for the Stats funnel."""
+    summaries = [lead_summary(l, base_lat, base_lng, 999, session_visits.get(l.id, []), stage_overrides) for l in leads]
+    board = {s: [] for s in stages}
+    for s in summaries:
+        board.setdefault(s["stage"], []).append(s)
+    counts = {s: len(board.get(s, [])) for s in stages}
+    return {"board": board, "counts": counts}
 
 
 def suggested_route(remaining: list[dict], base_lat: float, base_lng: float) -> list[dict]:

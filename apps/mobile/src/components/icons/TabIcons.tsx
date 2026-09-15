@@ -57,6 +57,19 @@ export function LeadsTabIcon({ size = 21, color = '#0F2835' }: IconProps) {
   );
 }
 
+// Three uneven kanban columns — represents the pipeline board's stage
+// layout, matching the others' single-path, filled style.
+export function PipelineTabIcon({ size = 21, color = '#0F2835' }: IconProps) {
+  const w = (size * 84) / 84;
+  return (
+    <Svg width={w} height={size} viewBox="0 0 84 84" fill={color}>
+      <Path d="M22,84H6c-3.3,0-6-2.7-6-6V6c0-3.3,2.7-6,6-6h16c3.3,0,6,2.7,6,6v72C28,81.3,25.3,84,22,84z M6,3C4.3,3,3,4.3,3,6v72c0,1.7,1.3,3,3,3h16c1.7,0,3-1.3,3-3V6c0-1.7-1.3-3-3-3H6z" />
+      <Path d="M50,60H34c-3.3,0-6-2.7-6-6V6c0-3.3,2.7-6,6-6h16c3.3,0,6,2.7,6,6v48C56,57.3,53.3,60,50,60z M34,3c-1.7,0-3,1.3-3,3v48c0,1.7,1.3,3,3,3h16c1.7,0,3-1.3,3-3V6c0-1.7-1.3-3-3-3H34z" />
+      <Path d="M78,72H62c-3.3,0-6-2.7-6-6V6c0-3.3,2.7-6,6-6h16c3.3,0,6,2.7,6,6v60C84,69.3,81.3,72,78,72z M62,3c-1.7,0-3,1.3-3,3v60c0,1.7,1.3,3,3,3h16c1.7,0,3-1.3,3-3V6c0-1.7-1.3-3-3-3H62z" />
+    </Svg>
+  );
+}
+
 export function StatsTabIcon({ size = 21, color = '#0F2835' }: IconProps) {
   const w = (size * 84) / 84;
   return (

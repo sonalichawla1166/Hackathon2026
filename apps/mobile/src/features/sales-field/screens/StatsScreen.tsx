@@ -8,15 +8,19 @@ import { Badge } from '@/components/ui/Badge';
 import { LoadingState, ErrorState } from '@/components/ui/AsyncState';
 import { useSalesLocation } from '../useDeviceLocation';
 import { outcomeColor } from '../outcomeColors';
+import { stageColor } from '../stageColors';
 
 export function StatsScreen() {
   const { coords } = useSalesLocation();
   const radiusKm = useUiStore((s) => s.salesRadiusKm);
   const selectLead = useUiStore((s) => s.selectLead);
+  const setSalesScreen = useUiStore((s) => s.setSalesScreen);
   const { data, isPending, isError, error, refetch } = useSalesStats(coords.lat, coords.lng, radiusKm);
 
   if (isPending) return <LoadingState label="Tallying today…" />;
   if (isError) return <ErrorState error={error} onRetry={refetch} />;
+
+  const funnelMax = Math.max(1, ...data.stageFunnel.map((f) => f.count));
 
   return (
     <View style={styles.wrap}>
@@ -25,6 +29,24 @@ export function StatsScreen() {
           <View key={k.k} style={styles.kpiCard}>
             <Text style={styles.kpiValue}>{k.v}</Text>
             <Text style={styles.kpiLabel}>{k.k}</Text>
+          </View>
+        ))}
+      </View>
+
+      <View style={styles.funnelHeaderRow}>
+        <Text style={styles.sectionTitle}>Pipeline funnel</Text>
+        <Pressable onPress={() => setSalesScreen('pipeline')}>
+          <Text style={styles.funnelLink}>Open board ›</Text>
+        </Pressable>
+      </View>
+      <View style={styles.funnelCard}>
+        {data.stageFunnel.map((f) => (
+          <View key={f.stage} style={styles.funnelRow}>
+            <Text style={styles.funnelLabel} numberOfLines={1}>{f.stage}</Text>
+            <View style={styles.funnelTrack}>
+              <View style={[styles.funnelFill, { width: `${(f.count / funnelMax) * 100}%`, backgroundColor: stageColor(f.stage) }]} />
+            </View>
+            <Text style={styles.funnelCount}>{f.count}</Text>
           </View>
         ))}
       </View>
@@ -67,6 +89,14 @@ const styles = StyleSheet.create({
   kpiValue: { fontFamily: fontFamily.heading, fontSize: 22, color: colors.textHeading },
   kpiLabel: { fontFamily: fontFamily.body, fontSize: 10.5, color: colors.textMuted, marginTop: 3, textAlign: 'center' },
   sectionTitle: { fontFamily: fontFamily.heading, fontSize: 13, color: colors.textHeading, marginTop: 6 },
+  funnelHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 },
+  funnelLink: { fontFamily: fontFamily.bodyBold, fontSize: 12, color: colors.accent },
+  funnelCard: { backgroundColor: colors.surfaceCard, borderRadius: radius.md, padding: 14, gap: 10 },
+  funnelRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  funnelLabel: { width: 88, fontFamily: fontFamily.body, fontSize: 11.5, color: colors.textMuted },
+  funnelTrack: { flex: 1, height: 8, borderRadius: 4, backgroundColor: colors.surfaceMutedAlt, overflow: 'hidden' },
+  funnelFill: { height: '100%', borderRadius: 4 },
+  funnelCount: { width: 20, textAlign: 'right', fontFamily: fontFamily.bodyBold, fontSize: 12.5, color: colors.textHeading },
   sectionSub: { fontFamily: fontFamily.body, fontSize: 11.5, color: colors.textMuted, marginTop: -4, lineHeight: 16 },
   empty: { fontFamily: fontFamily.body, fontSize: 12.5, color: colors.textMuted },
   row: {

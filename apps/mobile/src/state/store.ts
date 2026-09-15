@@ -13,7 +13,7 @@ import { Platform } from 'react-native';
 export type Surface = 'app' | 'portal' | 'ops' | 'copilot' | 'sales';
 export type AppScreen = 'home' | 'chat' | 'bill' | 'sim' | 'alert' | 'programs' | 'outage' | 'pay';
 export type OpsView = 'maint' | 'dr';
-export type SalesScreen = 'leads' | 'detail' | 'stats';
+export type SalesScreen = 'leads' | 'detail' | 'stats' | 'pipeline';
 export type LocationMode = 'territory' | 'device';
 
 // No backend auth exists yet — logging in just picks which surface's

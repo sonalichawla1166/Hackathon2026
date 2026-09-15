@@ -232,3 +232,20 @@ export function useSalesStats(lat: number, lng: number, radiusKm: number) {
     queryFn: () => salesApi.getStats(lat, lng, radiusKm),
   });
 }
+
+export function useSetStage() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, stage }: { id: string; stage: string }) => salesApi.setStage(id, stage),
+    onSuccess: (data, vars) => {
+      qc.setQueryData(['sales', 'lead', vars.id], data.lead);
+      qc.invalidateQueries({ queryKey: ['sales', 'leads'] });
+      qc.invalidateQueries({ queryKey: ['sales', 'pipeline'] });
+      qc.invalidateQueries({ queryKey: ['sales', 'stats'] });
+    },
+  });
+}
+
+export function useSalesPipeline() {
+  return useQuery({ queryKey: ['sales', 'pipeline'], queryFn: salesApi.getPipeline });
+}

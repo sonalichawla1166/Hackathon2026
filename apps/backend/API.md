@@ -167,33 +167,52 @@ as `GET /copilot/call`.
 A fifth surface for a rep walking a territory. Leads are a fixed mock
 dataset (`LEADS` in `data.py`) of NYC-area addresses with lat/lng; distance
 is real haversine math from either the rep's device GPS (sent as `lat`/`lng`)
-or the fallback `SALES_REP_BASE`. Knock outcomes logged this session persist
-per-session (same `X-Session-Id` mechanism as chat/enrollment) on top of each
-lead's seed visit history — they don't survive a backend restart.
+or the fallback `SALES_REP_BASE`. Knock outcomes and pipeline stage changes
+logged this session persist per-session (same `X-Session-Id` mechanism as
+chat/enrollment) on top of each lead's seed data — they don't survive a
+backend restart.
+
+Every lead also carries a **pipeline stage** (`SALES_STAGES` in `data.py`:
+`New → Contacted → Qualified → Proposal Sent → Negotiating → Won/Lost`,
+Won/Lost terminal) — a manual field the rep sets explicitly via
+`POST /sales/leads/{id}/stage`, independent of the knock log below (logging a
+knock doesn't move the stage, and vice versa).
 
 ### `GET /sales/leads?lat=&lng=&radiusKm=10`
 `lat`/`lng` (float, default `SALES_REP_BASE`), `radiusKm` (float, 1-50,
 default 10). Returns `{ repBase, radiusKm, kpis: [{k,v}], knockOutcomes:
-string[], leads: [Lead] }`, `leads` sorted nearest-first and already filtered
-to the radius. Each `Lead` has `mapX`/`mapY` (0-1, for the schematic map
-widget — not a real projection), `distanceKm`, `distanceLabel`,
-`knockedToday`, `lastOutcome`, `visitCount`.
+string[], stages: string[], leads: [Lead] }`, `leads` sorted nearest-first
+and already filtered to the radius. Each `Lead` has `stage`, `mapX`/`mapY`
+(0-1, for the schematic map widget — not a real projection), `distanceKm`,
+`distanceLabel`, `knockedToday`, `lastOutcome`, `visitCount`.
 
 ### `GET /sales/leads/{lead_id}`
-Same `Lead` shape plus `history: [{date, outcome, rep, notes}]`, most recent
-first (seed history merged with this session's logged knocks). 404 if the id
-doesn't exist.
+Same `Lead` shape plus `history: [{date, outcome, rep, notes}]` (most recent
+first, seed history merged with this session's logged knocks) and `stages`.
+404 if the id doesn't exist.
 
 ### `POST /sales/leads/{lead_id}/knock`
 Body: `{ outcome: string, notes?: string }`. `outcome` must be one of
 `knockOutcomes` (422 otherwise). Appends a visit dated today to this
 session's history for the lead. Returns `{ lead: LeadDetail, ctaLabel }`.
 
+### `POST /sales/leads/{lead_id}/stage`
+Body: `{ stage: string }`. `stage` must be one of `SALES_STAGES` (422
+otherwise). Sets this session's stage override for the lead. Returns
+`{ lead: LeadDetail, ctaLabel }`.
+
+### `GET /sales/pipeline`
+No params — the board is the rep's whole lead book, not radius-filtered.
+Returns `{ stages: string[], board: { [stage]: Lead[] }, counts: { [stage]:
+number } }` for the Kanban pipeline view.
+
 ### `GET /sales/stats?lat=&lng=&radiusKm=10`
 Today's tally (`today: [{k,v}]` — doors knocked, sold, conversion %),
-`knockedToday: [{id, address, outcome}]`, and `suggestedRoute` — a
+`knockedToday: [{id, address, outcome}]`, `suggestedRoute` — a
 nearest-neighbour walking order (not a real TSP solve) over this session's
-not-yet-knocked leads in range, starting from `lat`/`lng`.
+not-yet-knocked leads in range, starting from `lat`/`lng` — and
+`stageFunnel: [{stage, count}]`, the same per-stage counts as
+`/sales/pipeline` for the Stats screen's funnel chart.
 
 ---
 

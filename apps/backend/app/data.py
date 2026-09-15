@@ -318,6 +318,10 @@ SALES_REP_BASE = {"lat": 40.7638, "lng": -73.9918}
 
 KNOCK_OUTCOMES = ["Sold", "Not home", "Not interested", "Callback requested", "Do not contact"]
 
+# Manual CRM pipeline — the rep sets/advances this explicitly (independent of
+# knock outcomes, which are a separate visit log). Won/Lost are terminal.
+SALES_STAGES = ["New", "Contacted", "Qualified", "Proposal Sent", "Negotiating", "Won", "Lost"]
+
 
 @dataclass
 class VisitEntry:
@@ -340,6 +344,7 @@ class LeadEntry:
     phone: str
     notes: str
     history: list[VisitEntry] = field(default_factory=list)
+    stage: str = "New"
 
 
 # Addresses scattered around SALES_REP_BASE, mostly within ~10km (Manhattan,
@@ -355,6 +360,7 @@ LEADS: list[LeadEntry] = [
             VisitEntry("2026-08-14", "Not home", "J. Ortiz", "Tried early evening, no answer."),
             VisitEntry("2026-08-28", "Callback requested", "J. Ortiz", "Spoke to husband, asked for a call after 6pm."),
         ],
+        stage="Contacted",
     ),
     LeadEntry(
         "LD-102", "455 W 51st St", None, 40.7659, -73.9903, "Marcus Webb", "Prospect",
@@ -369,12 +375,14 @@ LEADS: list[LeadEntry] = [
         [
             VisitEntry("2026-07-30", "Not interested", "S. Boone", "Said she was busy, did not want to talk rates."),
         ],
+        stage="Lost",
     ),
     LeadEntry(
         "LD-104", "601 W 57th St", None, 40.7712, -73.9884, "Con Edison West Yard", "Existing customer",
         "Commercial account, high demand charge — solar/battery pitch candidate", "(212) 555-0199",
         "Facilities office is on-site weekdays 8-4. Ask for facilities manager, not the front desk.",
         [],
+        stage="Qualified",
     ),
     LeadEntry(
         "LD-105", "340 W 43rd St", "Apt 4F", 40.7581, -73.9908, "Renata Alves", "Lapsed customer",
@@ -397,6 +405,7 @@ LEADS: list[LeadEntry] = [
         [
             VisitEntry("2026-09-01", "Sold", "J. Ortiz", "Enrolled in rooftop solar assessment."),
         ],
+        stage="Won",
     ),
     LeadEntry(
         "LD-108", "88 W 40th St", None, 40.7524, -73.9843, "Bryant Park Tower Mgmt", "Prospect",
@@ -405,18 +414,21 @@ LEADS: list[LeadEntry] = [
         [
             VisitEntry("2026-08-20", "Callback requested", "S. Boone", "Property manager wants a written proposal first."),
         ],
+        stage="Proposal Sent",
     ),
     LeadEntry(
         "LD-109", "10 Columbus Cir", "Apt 34A", 40.7685, -73.9822, "Helen Zhao", "Existing customer",
         "Anomaly flagged last month — possible appliance fault, good rapport already", "(646) 555-0134",
         "Already got the proactive anomaly alert in-app. Ask if the fridge issue got fixed.",
         [],
+        stage="Qualified",
     ),
     LeadEntry(
         "LD-110", "500 W 30th St", "Apt 7", 40.7514, -74.0031, "Owen Fitzgerald", "Prospect",
         "Hudson Yards new build, referred by a neighbor who enrolled", "(917) 555-0109",
         "Warm referral from LD-107's building. Lead with that.",
         [],
+        stage="Qualified",
     ),
     LeadEntry(
         "LD-111", "700 Columbus Ave", "Apt 15B", 40.7902, -73.9686, "Imani Carter", "Lapsed customer",
@@ -426,6 +438,7 @@ LEADS: list[LeadEntry] = [
             VisitEntry("2026-05-11", "Not interested", "J. Ortiz", "Still upset about the 2025 collections call."),
             VisitEntry("2026-07-19", "Not home", "J. Ortiz", "Second attempt, no answer."),
         ],
+        stage="Contacted",
     ),
     LeadEntry(
         "LD-112", "2109 Broadway", "Apt 3", 40.7799, -73.9814, "Felix Grant", "Prospect",
@@ -452,6 +465,7 @@ LEADS: list[LeadEntry] = [
         [
             VisitEntry("2026-08-05", "Callback requested", "S. Boone", "Asked for evening visit, works from home."),
         ],
+        stage="Negotiating",
     ),
     LeadEntry(
         "LD-116", "1 Fordham Plaza", "Apt 2", 40.8610, -73.8901, "Carlos Mendez", "Prospect",

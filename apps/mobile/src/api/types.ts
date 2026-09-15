@@ -236,6 +236,7 @@ export interface SalesLead {
   distanceLabel: string;
   customerName: string;
   accountStatus: string;
+  stage: string;
   segment: string;
   phone: string;
   notes: string;
@@ -247,6 +248,7 @@ export interface SalesLead {
 
 export interface SalesLeadDetail extends SalesLead {
   history: SalesVisit[];
+  stages: string[];
 }
 
 export interface SalesLeadsResult {
@@ -254,6 +256,7 @@ export interface SalesLeadsResult {
   radiusKm: number;
   kpis: { k: string; v: string }[];
   knockOutcomes: string[];
+  stages: string[];
   leads: SalesLead[];
 }
 
@@ -262,8 +265,25 @@ export interface KnockResult {
   ctaLabel: string;
 }
 
+export interface StageResult {
+  lead: SalesLeadDetail;
+  ctaLabel: string;
+}
+
+export interface StageFunnelEntry {
+  stage: string;
+  count: number;
+}
+
 export interface SalesStats {
   today: { k: string; v: string }[];
   knockedToday: { id: string; address: string; outcome: string | null }[];
   suggestedRoute: { id: string; address: string; distanceLabel: string }[];
+  stageFunnel: StageFunnelEntry[];
+}
+
+export interface SalesPipeline {
+  stages: string[];
+  board: Record<string, SalesLead[]>;
+  counts: Record<string, number>;
 }

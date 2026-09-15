@@ -18,3 +18,7 @@ class PaymentRequest(BaseModel):
 class KnockRequest(BaseModel):
     outcome: str
     notes: str = ""
+
+
+class StageRequest(BaseModel):
+    stage: str

@@ -10,6 +10,7 @@ import { LoadingState, ErrorState } from '@/components/ui/AsyncState';
 import { useSalesLocation } from '../useDeviceLocation';
 import { LeadsMap } from '../LeadsMap';
 import { outcomeColor } from '../outcomeColors';
+import { stageColor } from '../stageColors';
 
 export function LeadsScreen() {
   const { coords, usingDeviceLocation, status, useDeviceLocation, useTerritoryBase } = useSalesLocation();
@@ -76,11 +77,12 @@ export function LeadsScreen() {
               <Text style={styles.segment} numberOfLines={2}>
                 {l.segment}
               </Text>
-              {l.lastOutcome && (
-                <View style={{ marginTop: 6 }}>
+              <View style={styles.badgeRow}>
+                <Badge label={l.stage} bg={stageColor(l.stage)} />
+                {l.lastOutcome && (
                   <Badge label={l.knockedToday ? `Today: ${l.lastOutcome}` : `Last: ${l.lastOutcome}`} bg={outcomeColor(l.lastOutcome)} />
-                </View>
-              )}
+                )}
+              </View>
             </View>
             <Text style={styles.chevron}>›</Text>
           </Pressable>
@@ -118,5 +120,6 @@ const styles = StyleSheet.create({
   distance: { fontFamily: fontFamily.bodyBold, fontSize: 12, color: colors.accent },
   customer: { fontFamily: fontFamily.body, fontSize: 12, color: colors.textMuted, marginTop: 3 },
   segment: { fontFamily: fontFamily.body, fontSize: 11.5, color: colors.textMuted, marginTop: 4, lineHeight: 16 },
+  badgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6 },
   chevron: { fontFamily: fontFamily.bodyBold, fontSize: 20, color: colors.accent },
 });

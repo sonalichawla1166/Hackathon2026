@@ -4,22 +4,25 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useUiStore, SalesScreen } from '@/state/store';
 import { colors, gradients } from '@/theme';
 import { fontFamily } from '@/theme/typography';
-import { LeadsTabIcon, StatsTabIcon } from '@/components/icons/TabIcons';
+import { LeadsTabIcon, PipelineTabIcon, StatsTabIcon } from '@/components/icons/TabIcons';
 import { ScreenTransition } from '@/components/ui/ScreenTransition';
 import { BoldTabBar, TabDef } from '@/components/navigation/BoldTabBar';
 
 import { LeadsScreen } from './screens/LeadsScreen';
 import { LeadDetailScreen } from './screens/LeadDetailScreen';
+import { PipelineScreen } from './screens/PipelineScreen';
 import { StatsScreen } from './screens/StatsScreen';
 
 const TITLES: Record<SalesScreen, string> = {
   leads: 'Nearby leads',
   detail: 'Lead',
+  pipeline: 'Pipeline',
   stats: 'Today',
 };
 
 const TABS: TabDef<SalesScreen>[] = [
   { key: 'leads', label: 'Leads', Icon: LeadsTabIcon },
+  { key: 'pipeline', label: 'Pipeline', Icon: PipelineTabIcon },
   { key: 'stats', label: 'Stats', Icon: StatsTabIcon },
 ];
 
@@ -50,6 +53,7 @@ function SalesFieldShell() {
         <ScreenTransition key={screen}>
           {screen === 'leads' && <LeadsScreen />}
           {screen === 'detail' && <LeadDetailScreen />}
+          {screen === 'pipeline' && <PipelineScreen />}
           {screen === 'stats' && <StatsScreen />}
         </ScreenTransition>
       </ScrollView>

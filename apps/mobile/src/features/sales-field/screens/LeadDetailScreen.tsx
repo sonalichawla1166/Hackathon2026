@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
 import { useUiStore } from '@/state/store';
-import { useLogKnock, useSalesLeadDetail } from '@/api/hooks';
+import { useLogKnock, useSalesLeadDetail, useSetStage } from '@/api/hooks';
 import { colors, radius } from '@/theme';
 import { fontFamily } from '@/theme/typography';
 import { Card } from '@/components/ui/Card';
@@ -10,12 +10,14 @@ import { Chip } from '@/components/ui/Chip';
 import { Button } from '@/components/ui/Button';
 import { LoadingState, ErrorState } from '@/components/ui/AsyncState';
 import { outcomeColor } from '../outcomeColors';
+import { stageColor } from '../stageColors';
 
 export function LeadDetailScreen() {
   const leadId = useUiStore((s) => s.selectedLeadId);
   const selectLead = useUiStore((s) => s.selectLead);
   const { data, isPending, isError, error, refetch } = useSalesLeadDetail(leadId);
   const logKnock = useLogKnock();
+  const setStage = useSetStage();
 
   const [outcome, setOutcome] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
@@ -36,6 +38,11 @@ export function LeadDetailScreen() {
     );
   };
 
+  const pickStage = (stage: string) => {
+    if (!leadId || stage === data.stage) return;
+    setStage.mutate({ id: leadId, stage });
+  };
+
   return (
     <View style={styles.wrap}>
       <Pressable onPress={() => selectLead(null)} style={styles.backRow}>
@@ -51,6 +58,7 @@ export function LeadDetailScreen() {
         <Text style={styles.distanceNote}>{data.distanceLabel} away</Text>
 
         <View style={styles.badgeRow}>
+          <Badge label={data.stage} bg={stageColor(data.stage)} />
           <Badge label={data.accountStatus} bg={colors.primary} />
           {data.lastOutcome && <Badge label={`Last visit: ${data.lastOutcome}`} bg={outcomeColor(data.lastOutcome)} />}
         </View>
@@ -70,6 +78,22 @@ export function LeadDetailScreen() {
         <View style={styles.field}>
           <Text style={styles.fieldLabel}>Notes</Text>
           <Text style={styles.fieldValue}>{data.notes}</Text>
+        </View>
+      </Card>
+
+      <Card muted>
+        <Text style={styles.knockTitle}>Pipeline stage</Text>
+        <View style={styles.chipRow}>
+          {data.stages.map((s) => (
+            <Chip
+              key={s}
+              label={s}
+              selected={data.stage === s}
+              onPress={() => pickStage(s)}
+              selectedBg={stageColor(s)}
+              selectedBorder={stageColor(s)}
+            />
+          ))}
         </View>
       </Card>
 

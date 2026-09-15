@@ -43,12 +43,21 @@ class Session:
     # during this session, layered on top of each lead's seed history.
     sales_visits: dict[str, list[dict]] = field(default_factory=dict)
 
+    # Field sales: leadId -> manually-set pipeline stage for this session,
+    # overriding the lead's seed `stage` — independent of the knock log
+    # above (a rep can advance the stage without logging a visit, or vice
+    # versa).
+    lead_stage_overrides: dict[str, str] = field(default_factory=dict)
+
     def log_knock(self, lead_id: str, outcome: str, notes: str) -> dict:
         import datetime
 
         visit = {"date": datetime.date.today().isoformat(), "outcome": outcome, "rep": "You", "notes": notes}
         self.sales_visits.setdefault(lead_id, []).append(visit)
         return visit
+
+    def set_stage(self, lead_id: str, stage: str) -> None:
+        self.lead_stage_overrides[lead_id] = stage
 
     def ask(self, question: str) -> ChatMessage:
         hit = find_kb_hit(question)
