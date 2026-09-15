@@ -3,17 +3,29 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from .real.db import init_db as init_real_db
+from .real import rag as real_rag
 from .routers import account, anomalies, bill, chat, copilot, ops, outages, payments, portal, programs, sales, simulate
 
 app = FastAPI(
     title="OneGridAI API",
     description=(
-        "Mock backend for the OneGridAI concept (CG Infinity, Hackathon 2026). "
-        "Serves the same scripted data/formulas the Expo app used to compute "
-        "client-side, now over HTTP so the app is a real full-stack client."
+        "Backend for the OneGridAI concept (CG Infinity, Hackathon 2026). "
+        "Same response contract the Expo app was already built against "
+        "(API.md), now backed by a real DB, real PSEG-LI tariff math, and "
+        "real hybrid RAG for account/chat/bill/simulate/anomalies/programs/"
+        "ops-assets. Outages, payments, demand-response, copilot and field "
+        "sales remain the original scripted mock (see README)."
     ),
-    version="1.0.0",
+    version="1.1.0",
 )
+
+
+@app.on_event("startup")
+def _startup():
+    # Idempotent: creates tables only if missing. Run seed.py separately to
+    # populate real data, and ingest.py to build the PSEG-LI vector index.
+    init_real_db()
 
 # Dev-friendly CORS: the Expo web build and Expo Go both hit this from
 # unpredictable local origins (localhost:8081, a LAN IP, exp://...), so allow
@@ -42,4 +54,4 @@ app.include_router(sales.router)
 
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    return {"status": "ok", "real_vector_store_ready": real_rag.is_ready()}

@@ -72,6 +72,17 @@ class Session:
         self.log.append(reply)
         return reply
 
+    def real_ask(self, question: str, answer: str, cites: list[str]) -> ChatMessage:
+        """Like ask()/free_ask() but backed by the real hybrid RAG engine
+        (app.real.chat_engine) instead of the static KB — the router supplies
+        the already-computed answer/cites so this method stays a pure log
+        mutation, matching ask()/free_ask()'s shape."""
+        self.log.append(ChatMessage(role="user", text=question))
+        self.asked.append(question)
+        reply = ChatMessage(role="bot", text=answer, cites=cites or None)
+        self.log.append(reply)
+        return reply
+
 
 _sessions: dict[str, Session] = {}
 _lock = Lock()

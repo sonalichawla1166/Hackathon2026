@@ -1,41 +1,67 @@
 from __future__ import annotations
 
+from sqlalchemy import select
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from ..data import ASSETS
-from ..formulas import assets_for_list, dr_cohort
+from ..formulas import dr_cohort
+from ..real import maintenance as real_maintenance
+from ..real.db import Asset, SessionLocal
 from ..session import Session, current_session
 
 router = APIRouter(tags=["ops"])
 
-DR_WINDOW_LABELS = ["Oct 14, 2–6pm", "Oct 14, 4–8pm", "Oct 15, 3–7pm"]
+DR_WINDOW_LABELS = ["Oct 14, 2-6pm", "Oct 14, 4-8pm", "Oct 15, 3-7pm"]
 DR_WINDOW_TIMES = ["14:00-18:00", "16:00-20:00", "15:00-19:00"]
+
+
+def _real_assets() -> list[Asset]:
+    db = SessionLocal()
+    try:
+        return db.scalars(select(Asset).order_by(Asset.id)).all()
+    finally:
+        db.close()
 
 
 @router.get("/ops/assets")
 def get_assets(session: Session = Depends(current_session)):
-    assets = assets_for_list()
-    for a in assets:
-        a["dispatched"] = a["id"] in session.dispatched_ids
-        a["dispatchLabel"] = "Queued for crew 14" if a["dispatched"] else "Add to inspection queue"
+    rows = _real_assets()
+    scored = []
+    for a in rows:
+        s = real_maintenance.score(a)
+        scored.append({
+            "id": a.id, "type": f"{a.type.title()}, {a.region}", "loc": a.region,
+            "age": f"{a.age_years:.0f} yrs", "installed": str(a.install_date.year),
+            "customers": a.customers_served, "action": s["action"],
+            "drivers": s["drivers"], "riskLabel": f"{s['risk']:.2f}",
+            "riskPct": round(s["risk"] * 100),
+            "riskColorValue": "#D98D95" if s["band"] == "high" else "#D9B98A" if s["band"] == "medium" else "#938DA6",
+            "dispatched": a.id in session.dispatched_ids,
+            "dispatchLabel": "Queued for crew 14" if a.id in session.dispatched_ids else "Add to inspection queue",
+        })
+    scored.sort(key=lambda x: x["riskPct"], reverse=True)
     return {
         "kpis": [
-            {"k": "Assets monitored", "v": "1,842"},
-            {"k": "Avoided truck rolls, 90 d", "v": "38"},
-            {"k": "Model AUC", "v": "0.91"},
+            {"k": "Assets monitored", "v": f"{len(rows):,}"},
+            {"k": "High-risk assets", "v": str(sum(1 for a in scored if a["riskPct"] >= 66))},
+            {"k": "Model", "v": "Weighted risk score (age/load/failures/heat/health)"},
         ],
         "columns": ["Asset", "Location", "Age", "30-day risk"],
-        "assets": assets,
+        "assets": scored,
     }
 
 
 @router.post("/ops/assets/{asset_id}/dispatch")
 def dispatch_asset(asset_id: str, session: Session = Depends(current_session)):
-    if not any(a.id == asset_id for a in ASSETS):
+    if not any(a.id == asset_id for a in _real_assets()):
         raise HTTPException(status_code=404, detail="No such asset")
     session.dispatched_ids.add(asset_id)
     return {"id": asset_id, "dispatched": True, "dispatchLabel": "Queued for crew 14"}
 
+
+# --- Demand response: not backed by real data yet (no DR cohort model in the
+# real engine) — kept on the original mock formulas. Flagged as remaining
+# work in the merge report. ---
 
 @router.get("/ops/dr")
 def get_dr(window: int = Query(default=1, ge=0, le=2), picks: str = Query(default="0,3")):
@@ -65,7 +91,4 @@ def get_dr(window: int = Query(default=1, ge=0, le=2), picks: str = Query(defaul
 
 @router.post("/ops/dr/queue")
 def queue_dr(window: int = Query(default=1, ge=0, le=2), picks: str = Query(default="0,3")):
-    # Nothing is persisted server-side for the queued flag — the source
-    # design explicitly resets it the moment filters change, so the client
-    # keeps it as local optimistic UI state after this call succeeds.
     return {"queued": True, "ctaLabel": "Event queued"}

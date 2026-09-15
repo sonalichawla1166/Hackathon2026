@@ -1,0 +1,62 @@
+{
+  "meta": {
+    "utility": "PSEG-LI",
+    "note": "Program catalog for the recommendation engine. Eligibility rules are evaluated against per-customer usage features derived from AMI data (see backend/app/features.py). Benefit figures are illustrative estimates for the demo."
+  },
+  "programs": [
+    {
+      "program_id": "PRG-EV-TOU",
+      "name": "EV Time-of-Day (Rate 195)",
+      "category": "rate_plan",
+      "description": "Switch to the Super Off-Peak rate and charge your EV overnight (10 PM-6 AM) at a deeply discounted price.",
+      "eligibility": {"night_load_ratio_min": 0.30, "has_ev_signal": false},
+      "fit_template": "You already use {night_pct}% of your energy overnight, so overnight EV charging would be cheap.",
+      "estimated_benefit_usd_year": 210.0
+    },
+    {
+      "program_id": "PRG-SOLAR",
+      "name": "Rooftop Solar + Net Metering",
+      "category": "solar",
+      "description": "Install rooftop solar and earn net-metering credits for energy you export to the grid.",
+      "eligibility": {"annual_usage_kwh_min": 6000, "daytime_load_ratio_min": 0.35},
+      "fit_template": "Your daytime usage ({day_pct}%) and annual consumption make solar a strong payback candidate.",
+      "estimated_benefit_usd_year": 900.0
+    },
+    {
+      "program_id": "PRG-WEATHERIZE",
+      "name": "Home Weatherization Rebate",
+      "category": "efficiency",
+      "description": "Rebates for insulation and air-sealing to cut heating and cooling waste.",
+      "eligibility": {"seasonal_swing_ratio_min": 1.4},
+      "fit_template": "Your usage swings {swing}x between seasons, a sign of heating/cooling loss weatherization can fix.",
+      "estimated_benefit_usd_year": 320.0
+    },
+    {
+      "program_id": "PRG-DR",
+      "name": "Demand Response Events",
+      "category": "demand_response",
+      "description": "Get paid to reduce load during a handful of peak-demand events each summer.",
+      "eligibility": {"peak_load_ratio_min": 0.22, "summer_user": true},
+      "fit_template": "You have high peak-hour usage ({peak_pct}%), so curtailing during events would earn meaningful credits.",
+      "estimated_benefit_usd_year": 150.0
+    },
+    {
+      "program_id": "PRG-BUDGET",
+      "name": "Budget Billing",
+      "category": "billing",
+      "description": "Even out seasonal bill swings into a predictable monthly amount.",
+      "eligibility": {"seasonal_swing_ratio_min": 1.6},
+      "fit_template": "Your bills swing {swing}x across the year; budget billing smooths that into one steady payment.",
+      "estimated_benefit_usd_year": 0.0
+    },
+    {
+      "program_id": "PRG-EFFICIENCY-AUDIT",
+      "name": "Free Home Energy Assessment",
+      "category": "efficiency",
+      "description": "A free assessment identifying always-on and inefficient loads.",
+      "eligibility": {"always_on_ratio_min": 0.30},
+      "fit_template": "Your always-on load is {alwayson_pct}% of usage - higher than most similar homes.",
+      "estimated_benefit_usd_year": 180.0
+    }
+  ]
+}

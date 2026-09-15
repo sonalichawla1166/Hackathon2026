@@ -1,0 +1,92 @@
+{
+  "meta": {
+    "utility": "PSEG-LI",
+    "commodity": "electric",
+    "source": "PSEG_Rates_Resident-2025.pdf (Common Residential Electric Rates 2026)",
+    "note": "Delivery charges are real PSEG-LI 2026 residential figures. Power Supply Charge (PSC) fluctuates monthly with the market; we fix a demo 'published rate' below and apply the tariff's published percentages. Peak = 3-7 PM weekdays; Super Off-Peak = 10 PM-6 AM daily. Seasons: summer = Jun-Sep, winter = Oct-May.",
+    "published_power_supply_rate_per_kwh": 0.1100,
+    "summer_months": [6, 7, 8, 9],
+    "peak_hours": [15, 16, 17, 18],
+    "super_offpeak_hours": [22, 23, 0, 1, 2, 3, 4, 5],
+    "peak_days": "weekdays",
+    "net_metering": {
+      "credit_per_kwh": 0.1100,
+      "cbc_charge_monthly": 0.0,
+      "note": "Full-retail-style net metering approximation for the simulator. Customer Benefit Contribution applies to net-meter customers connecting on/after 2022-01-01."
+    },
+    "other_charges": {
+      "late_payment_pct_monthly": 0.015,
+      "reconnection_usd": 80.0
+    }
+  },
+  "tariffs": [
+    {
+      "code": "180",
+      "name": "Residential, General Use (Flat)",
+      "type": "tiered",
+      "status": "optional",
+      "daily_service_charge": 0.5600,
+      "description": "Flat rate for general residential use (lights, appliances, water heating; not space heating). Same price all day, tiered by monthly kWh in summer.",
+      "tiers": {
+        "summer": [
+          {"upto": 250, "delivery": 0.1064},
+          {"upto": null, "delivery": 0.1348}
+        ],
+        "winter": [
+          {"upto": null, "delivery": 0.1064}
+        ]
+      },
+      "supply_pct": {"summer": 1.00, "winter": 1.00}
+    },
+    {
+      "code": "194",
+      "name": "Residential, Time-of-Day, Off-Peak (Standard)",
+      "type": "tou",
+      "status": "standard",
+      "daily_service_charge": 0.5600,
+      "description": "Standard residential rate. Higher price during 3-7 PM weekday peak, lower the rest of the time. Rewards shifting use out of the late-afternoon peak.",
+      "periods": [
+        {
+          "name": "peak",
+          "match": "peak_hours_weekday",
+          "delivery": {"summer": 0.2217, "winter": 0.1885},
+          "supply_pct": {"summer": 1.9505, "winter": 2.1340}
+        },
+        {
+          "name": "off_peak",
+          "match": "otherwise",
+          "delivery": {"summer": 0.1093, "winter": 0.0929},
+          "supply_pct": {"summer": 0.83, "winter": 0.83}
+        }
+      ]
+    },
+    {
+      "code": "195",
+      "name": "Residential, Time-of-Day, Super Off-Peak (EV)",
+      "type": "tou",
+      "status": "optional",
+      "daily_service_charge": 0.5600,
+      "description": "Time-of-Day rate with a deep overnight (10 PM-6 AM) Super Off-Peak discount, intended for electric vehicle charging.",
+      "periods": [
+        {
+          "name": "peak",
+          "match": "peak_hours_weekday",
+          "delivery": {"summer": 0.2979, "winter": 0.2440},
+          "supply_pct": {"summer": 1.7419, "winter": 1.9688}
+        },
+        {
+          "name": "super_off_peak",
+          "match": "super_offpeak_hours",
+          "delivery": {"summer": 0.0452, "winter": 0.0450},
+          "supply_pct": {"summer": 0.60, "winter": 0.60}
+        },
+        {
+          "name": "off_peak",
+          "match": "otherwise",
+          "delivery": {"summer": 0.1388, "winter": 0.0929},
+          "supply_pct": {"summer": 1.00, "winter": 1.00}
+        }
+      ]
+    }
+  ]
+}
