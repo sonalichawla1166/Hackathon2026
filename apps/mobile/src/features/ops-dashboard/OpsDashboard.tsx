@@ -10,8 +10,10 @@ import { ProfileMenu } from '@/components/ui/ProfileMenu';
 import { ScreenTransition } from '@/components/ui/ScreenTransition';
 import { MaintenanceQueue } from './MaintenanceQueue';
 import { DemandResponseView } from './DemandResponseView';
+import { ImpactSummary } from './ImpactSummary';
 
 const OPS_NAV: { key: OpsView; label: string; meta: string }[] = [
+  { key: 'impact', label: 'Impact & ROI', meta: 'Business summary' },
   { key: 'maint', label: 'Predictive maintenance', meta: '6 assets over threshold' },
   { key: 'dr', label: 'Demand response', meta: 'Next event Oct 14' },
 ];
@@ -94,6 +96,7 @@ export function OpsDashboard() {
           <PageWash />
           <ScrollView style={styles.content} contentContainerStyle={[styles.contentInner, compact && styles.contentInnerCompact]}>
           <ScreenTransition key={opsView}>
+            {opsView === 'impact' && <ImpactSummary compact={compact} />}
             {opsView === 'maint' && <MaintenanceQueue compact={compact} />}
             {opsView === 'dr' && <DemandResponseView compact={compact} />}
           </ScreenTransition>

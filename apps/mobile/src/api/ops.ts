@@ -1,8 +1,12 @@
 import { apiGet, apiPost } from './client';
-import type { DispatchResult, DrQueueResult, OpsAssets, OpsDr } from './types';
+import type { DispatchResult, DrQueueResult, OpsAssets, OpsDr, OpsImpact } from './types';
 
 export function getOpsAssets(): Promise<OpsAssets> {
   return apiGet<OpsAssets>('/ops/assets');
+}
+
+export function getOpsImpact(): Promise<OpsImpact> {
+  return apiGet<OpsImpact>('/ops/impact');
 }
 
 export function dispatchAsset(assetId: string): Promise<DispatchResult> {

@@ -4,8 +4,10 @@ from sqlalchemy import select
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from ..formulas import dr_cohort
-from ..real import maintenance as real_maintenance
+from ..data import LEADS, SALES_REP_BASE
+from ..formulas import dr_cohort, leads_in_range
+from ..real import anomaly, maintenance as real_maintenance, store
+from ..real.config import ANOMALY_CUSTOMER_ID
 from ..real.db import Asset, SessionLocal
 from ..session import Session, current_session
 
@@ -92,3 +94,84 @@ def get_dr(window: int = Query(default=1, ge=0, le=2), picks: str = Query(defaul
 @router.post("/ops/dr/queue")
 def queue_dr(window: int = Query(default=1, ge=0, le=2), picks: str = Query(default="0,3")):
     return {"queued": True, "ctaLabel": "Event queued"}
+
+
+# --- Impact/ROI summary: aggregates numbers already computed above and by
+# the programs/sales/anomalies routers into one business-case view. No new
+# models — see the per-group comments for what's live vs. extrapolated. ---
+
+@router.get("/ops/impact")
+def get_impact(session: Session = Depends(current_session)):
+    rows = _real_assets()
+    high_risk = sum(1 for a in rows if real_maintenance.score(a)["risk"] >= 0.66)
+
+    cohort = dr_cohort([0, 3])
+    dr_count = cohort["drCount"]
+
+    leads = leads_in_range(
+        LEADS, SALES_REP_BASE["lat"], SALES_REP_BASE["lng"], 10.0,
+        session.sales_visits, session.lead_stage_overrides,
+    )
+    knocked_today = [l for l in leads if l["knockedToday"]]
+    sold_today = [l for l in knocked_today if l["lastOutcome"] == "Sold"]
+    conversion = round(len(sold_today) / len(knocked_today) * 100) if knocked_today else 0
+
+    db = SessionLocal()
+    try:
+        n_customers = store.customer_count(db)
+        _, readings = store.customer_electric_readings(db, ANOMALY_CUSTOMER_ID)
+    finally:
+        db.close()
+    det = anomaly.detect(readings)
+    if det:
+        # One customer's weekly excess cost, annualized and extrapolated
+        # across the seeded customer base — a single multiply, not a new
+        # model. Presented as an estimate, not a measured fleet figure.
+        weekly_usd = det["excess_kwh"] * anomaly.IMPACT_PER_KWH
+        fleet_annual_usd = weekly_usd * 52 * n_customers
+        anomaly_stat = f"${fleet_annual_usd:,.0f}/yr (extrapolated across {n_customers} customers)"
+    else:
+        anomaly_stat = "No active anomalies detected"
+
+    return {
+        "note": "Some figures below are live (assets, DR, sales, this session); others are modeled for the demo (chat deflection, fleet-wide anomaly savings) — see API.md.",
+        "groups": [
+            {
+                "title": "Cost reduction",
+                "stats": [{"k": "Chat call-deflection rate", "v": "40-60%"}],
+            },
+            {
+                "title": "Revenue protection",
+                "stats": [{"k": "Est. anomaly savings, fleet-wide", "v": anomaly_stat}],
+            },
+            {
+                "title": "Grid reliability",
+                "stats": [
+                    {"k": "Assets monitored", "v": f"{len(rows):,}"},
+                    {"k": "High-risk assets", "v": str(high_risk)},
+                ],
+            },
+            {
+                "title": "Demand response",
+                "stats": [
+                    {"k": "Expected curtailment", "v": f"{cohort['mw']:.1f} MW"},
+                    {"k": "Incentive cost avoided", "v": f"${round(dr_count * 0.62 * 25):,}"},
+                ],
+            },
+            {
+                "title": "Field sales",
+                "stats": [
+                    {"k": "Doors knocked today", "v": str(len(knocked_today))},
+                    {"k": "Conversion", "v": f"{conversion}%"},
+                ],
+            },
+            {
+                "title": "This session's activity",
+                "stats": [
+                    {"k": "Programs enrolled", "v": str(len(session.enrolled))},
+                    {"k": "Anomaly acknowledged", "v": "Yes" if session.alert_ack else "No"},
+                    {"k": "Assets dispatched", "v": str(len(session.dispatched_ids))},
+                ],
+            },
+        ],
+    }

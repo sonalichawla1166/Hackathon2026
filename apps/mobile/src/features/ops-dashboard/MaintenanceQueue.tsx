@@ -34,6 +34,15 @@ export function MaintenanceQueue({ compact }: { compact: boolean }) {
   const selectedId = selectedAssetId ?? assets[0].id;
   const sel = assets.find((a) => a.id === selectedId) ?? assets[0];
 
+  if (!sel) {
+    return (
+      <View>
+        <Text style={styles.title}>Predictive maintenance queue</Text>
+        <Text style={styles.subtitle}>No assets to show yet — run the backend's seed script to populate demo data.</Text>
+      </View>
+    );
+  }
+
   return (
     <View>
       <View style={[styles.header, compact && styles.headerCompact]}>

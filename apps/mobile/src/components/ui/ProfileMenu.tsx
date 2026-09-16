@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { Image, Modal, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { SURFACE_LABELS, useUiStore } from '@/state/store';
+import { useLogout } from '@/api/hooks';
 import { makeStyles, radius, spacing, useTheme, withAlpha } from '@/theme';
 import { fontFamily } from '@/theme/typography';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
@@ -29,7 +30,7 @@ export function ProfileMenu({ onInverse = false, details = [] }: ProfileMenuProp
 
   const user = useUiStore((s) => s.user);
   const session = useUiStore((s) => s.session);
-  const logout = useUiStore((s) => s.logout);
+  const logout = useLogout();
   const [open, setOpen] = useState(false);
 
   const close = useCallback(() => setOpen(false), []);

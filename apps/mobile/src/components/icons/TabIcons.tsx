@@ -100,3 +100,15 @@ export function StatsTabIcon({ size = 22, color = 'currentColor', active }: Icon
     </Svg>
   );
 }
+
+/** Microphone for the chat composer's voice-input button — not a tab icon,
+ * but drawn to match this set's stroke/grid/weight so it doesn't stand out. */
+export function MicIcon({ size = 22, color = 'currentColor', active }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" stroke={color} strokeWidth={stroke(active)} {...BASE}>
+      <Rect x={9} y={2.5} width={6} height={11} rx={3} />
+      <Path d="M6 11a6 6 0 0 0 12 0" />
+      <Path d="M12 17v4M9 21h6" />
+    </Svg>
+  );
+}

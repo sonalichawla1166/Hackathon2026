@@ -3,8 +3,10 @@
 // fetch() directly — it keeps cache keys and invalidation consistent.
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { useUiStore } from '@/state/store';
 import * as accountApi from './account';
 import * as anomaliesApi from './anomalies';
+import * as authApi from './auth';
 import * as billApi from './bill';
 import * as chatApi from './chat';
 import * as copilotApi from './copilot';
@@ -140,6 +142,10 @@ export function useOpsAssets() {
   return useQuery({ queryKey: ['ops', 'assets'], queryFn: opsApi.getOpsAssets });
 }
 
+export function useOpsImpact() {
+  return useQuery({ queryKey: ['ops', 'impact'], queryFn: opsApi.getOpsImpact });
+}
+
 export function useDispatchAsset() {
   const qc = useQueryClient();
   return useMutation({
@@ -248,4 +254,19 @@ export function useSetStage() {
 
 export function useSalesPipeline() {
   return useQuery({ queryKey: ['sales', 'pipeline'], queryFn: salesApi.getPipeline });
+}
+
+// ---- Auth ------------------------------------------------------------
+
+// Ends the backend session (best-effort — the UI logs out either way) before
+// clearing local session/token state. A plain store action can't do the
+// backend call itself: store.ts is documented as pure UI state, all network
+// calls live in this api layer.
+export function useLogout() {
+  const token = useUiStore((s) => s.token);
+  const clearSession = useUiStore((s) => s.logout);
+  return () => {
+    if (token) authApi.logout(token).catch(() => {});
+    clearSession();
+  };
 }

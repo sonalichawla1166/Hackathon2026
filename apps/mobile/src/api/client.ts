@@ -1,5 +1,6 @@
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
+import { useUiStore } from '@/state/store';
 
 /**
  * Resolves the backend's base URL:
@@ -26,10 +27,28 @@ function resolveBaseUrl(): string {
 
 export const API_BASE_URL = resolveBaseUrl();
 
-// One id per app load — enough for a demo (each session gets its own chat
-// log, enrollments, etc.), no persistence dependency required. Pass a fixed
-// value here if you want two devices to share one "customer".
-const SESSION_ID = `mobile-${Math.random().toString(36).slice(2)}-${Date.now().toString(36)}`;
+// Fallback id, only used before login (POST /auth/login itself doesn't read
+// X-Session-Id, so this never actually reaches a session-aware endpoint).
+// Once logged in, the real session id is the token /auth/login returned —
+// see state/store.ts's `token` field, persisted so it survives an app reload.
+const FALLBACK_SESSION_ID = `mobile-${Math.random().toString(36).slice(2)}-${Date.now().toString(36)}`;
+
+// FastAPI error bodies are JSON: {"detail": "some message"} for a raised
+// HTTPException, or {"detail": [{"msg": "...", ...}, ...]} for a pydantic
+// validation failure (422). Pull the human-readable string out of either
+// shape instead of surfacing raw JSON in the UI.
+function extractErrorMessage(rawBody: string): string | null {
+  if (!rawBody) return null;
+  try {
+    const parsed = JSON.parse(rawBody);
+    const detail = parsed?.detail;
+    if (typeof detail === 'string') return detail;
+    if (Array.isArray(detail) && typeof detail[0]?.msg === 'string') return detail[0].msg;
+  } catch {
+    // not JSON — fall through to returning the raw text
+  }
+  return rawBody;
+}
 
 export class ApiError extends Error {
   status: number;
@@ -41,17 +60,18 @@ export class ApiError extends Error {
 }
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  const sessionId = useUiStore.getState().token ?? FALLBACK_SESSION_ID;
   const res = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
-      'X-Session-Id': SESSION_ID,
+      'X-Session-Id': sessionId,
       ...(init?.headers ?? {}),
     },
   });
   if (!res.ok) {
     const text = await res.text().catch(() => '');
-    throw new ApiError(res.status, text || res.statusText || `Request to ${path} failed`);
+    throw new ApiError(res.status, extractErrorMessage(text) || res.statusText || `Request to ${path} failed`);
   }
   if (res.status === 204) return undefined as T;
   return (await res.json()) as T;

@@ -189,6 +189,16 @@ export interface DrQueueResult {
   ctaLabel: string;
 }
 
+export interface OpsImpactGroup {
+  title: string;
+  stats: { k: string; v: string }[];
+}
+
+export interface OpsImpact {
+  note: string;
+  groups: OpsImpactGroup[];
+}
+
 export interface RetrievedChunk {
   src: string;
   score: string;

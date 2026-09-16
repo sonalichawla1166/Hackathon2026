@@ -1,11 +1,13 @@
 import React from 'react';
-import { View, Text, TextInput, Pressable } from 'react-native';
+import { View, Text, TextInput, Pressable, Alert } from 'react-native';
 import { useUiStore } from '@/state/store';
 import { useChat, useSendChat } from '@/api/hooks';
 import { makeStyles, useTheme } from '@/theme';
 import { fontFamily } from '@/theme/typography';
 import { CitationRow } from '@/components/ui/Citation';
 import { LoadingState, ErrorState } from '@/components/ui/AsyncState';
+import { MicIcon } from '@/components/icons/TabIcons';
+import { useVoiceInput } from './useVoiceInput';
 
 export function ChatScreen() {
   const styles = useStyles();
@@ -16,14 +18,28 @@ export function ChatScreen() {
   const { data, isPending, isError, error, refetch } = useChat();
   const sendChat = useSendChat();
 
-  if (isPending) return <LoadingState label="Loading conversation…" />;
-  if (isError) return <ErrorState error={error} onRetry={refetch} />;
-
   const send = (text: string) => {
     if (!text.trim()) return;
     setDraft('');
     sendChat.mutate(text);
   };
+
+  const voice = useVoiceInput((transcript) => send(transcript));
+
+  const handleMicPress = () => {
+    if (!voice.supported) {
+      Alert.alert(
+        'Voice input unavailable',
+        "Voice input needs a development build and isn't available in Expo Go on a phone. It works in a web browser — run the app with `npm run web`."
+      );
+      return;
+    }
+    if (voice.listening) voice.stop();
+    else voice.start();
+  };
+
+  if (isPending) return <LoadingState label="Loading conversation…" />;
+  if (isError) return <ErrorState error={error} onRetry={refetch} />;
 
   return (
     <View style={styles.wrap}>
@@ -53,10 +69,17 @@ export function ChatScreen() {
           </View>
         )}
         <View style={styles.inputRow}>
+          <Pressable
+            style={[styles.micBtn, voice.listening && styles.micBtnActive]}
+            onPress={handleMicPress}
+            disabled={sendChat.isPending}
+          >
+            <MicIcon size={16} color={voice.listening ? colors.onCta : colors.textMuted} />
+          </Pressable>
           <TextInput
             value={draft}
             onChangeText={setDraft}
-            placeholder="Type a question"
+            placeholder={voice.listening ? 'Listening…' : 'Type a question'}
             placeholderTextColor={colors.textMuted}
             style={styles.input}
             onSubmitEditing={() => send(draft)}
@@ -94,6 +117,8 @@ const useStyles = makeStyles((t) => ({
     paddingVertical: 6,
   },
   input: { flex: 1, fontFamily: fontFamily.body, fontSize: 13.5, color: t.colors.textHeading, backgroundColor: 'transparent', minWidth: 0 },
+  micBtn: { flex: 0, width: 34, height: 34, borderRadius: 5, backgroundColor: t.colors.surfaceMuted, alignItems: 'center', justifyContent: 'center' },
+  micBtnActive: { backgroundColor: t.colors.danger },
   sendBtn: { flex: 0, width: 34, height: 34, borderRadius: 5, backgroundColor: t.colors.cta, alignItems: 'center', justifyContent: 'center' },
   sendGlyph: { fontFamily: fontFamily.bodyBold, fontSize: 16, color: t.colors.onCta },
 }));

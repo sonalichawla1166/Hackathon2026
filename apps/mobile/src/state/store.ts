@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Pure client-side UI/navigation/selection state. All *data* — chat log,
 // bill/solar numbers, program list, asset list, call transcript, etc. — now
@@ -33,26 +34,33 @@ export const SURFACE_LABELS: Record<Surface, string> = {
   sales: 'Field sales',
 };
 export type AppScreen = 'home' | 'chat' | 'bill' | 'sim' | 'alert' | 'programs' | 'outage' | 'pay';
-export type OpsView = 'maint' | 'dr';
+export type OpsView = 'impact' | 'maint' | 'dr';
 export type SalesScreen = 'leads' | 'detail' | 'stats' | 'pipeline';
 export type LocationMode = 'territory' | 'device';
 
-// No backend auth exists yet — logging in just picks which surface's
-// session you land in, so only `session` needs to survive a web refresh.
-const webStorage = {
-  getItem: (name: string) => (Platform.OS === 'web' ? window.localStorage.getItem(name) : null),
-  setItem: (name: string, value: string) => {
-    if (Platform.OS === 'web') window.localStorage.setItem(name, value);
-  },
-  removeItem: (name: string) => {
-    if (Platform.OS === 'web') window.localStorage.removeItem(name);
-  },
+// Persists `session`, `user` and `token` (the real backend session id from
+// POST /auth/login — null for a Google sign-in, which doesn't mint one) so
+// reloading the app — common during dev, or just backgrounding/reopening on
+// a phone — doesn't bounce the user back to the sign-in screen or lose
+// their backend-side session state (enrollments, payments, etc.). Web uses
+// localStorage; native uses AsyncStorage, which is the persistence layer
+// Expo apps use for this.
+const appStorage = {
+  getItem: (name: string) =>
+    Platform.OS === 'web' ? window.localStorage.getItem(name) : AsyncStorage.getItem(name),
+  setItem: (name: string, value: string) =>
+    Platform.OS === 'web' ? window.localStorage.setItem(name, value) : AsyncStorage.setItem(name, value),
+  removeItem: (name: string) =>
+    Platform.OS === 'web' ? window.localStorage.removeItem(name) : AsyncStorage.removeItem(name),
 };
 
 interface UiState {
   session: Surface | null;
   user: SessionUser | null;
-  login: (role: Surface, user: SessionUser) => void;
+  /** The real backend session id from POST /auth/login — null when signed
+   * in via Google, which doesn't mint one (see api/hooks.ts's useLogout). */
+  token: string | null;
+  login: (role: Surface, user: SessionUser, token?: string | null) => void;
   logout: () => void;
 
   screen: AppScreen;
@@ -109,9 +117,10 @@ export const useUiStore = create<UiState>()(
     (set) => ({
       session: null,
       user: null,
-      login: (role, user) =>
-        set({ session: role, user, screen: 'home', opsView: 'maint', salesScreen: 'leads', selectedLeadId: null }),
-      logout: () => set({ session: null, user: null }),
+      token: null,
+      login: (role, user, token = null) =>
+        set({ session: role, user, token, screen: 'home', opsView: 'impact', salesScreen: 'leads', selectedLeadId: null }),
+      logout: () => set({ session: null, user: null, token: null }),
 
       screen: 'home',
       setScreen: (screen) => set({ screen }),
@@ -135,7 +144,7 @@ export const useUiStore = create<UiState>()(
       faqOpen: 0,
       toggleFaq: (i) => set((s) => ({ faqOpen: s.faqOpen === i ? -1 : i })),
 
-      opsView: 'maint',
+      opsView: 'impact',
       setOpsView: (opsView) => set({ opsView }),
 
       selectedAssetId: null,
@@ -168,8 +177,8 @@ export const useUiStore = create<UiState>()(
     }),
     {
       name: 'onegridai-session',
-      storage: createJSONStorage(() => webStorage),
-      partialize: (s) => ({ session: s.session, user: s.user }),
+      storage: createJSONStorage(() => appStorage),
+      partialize: (s) => ({ session: s.session, user: s.user, token: s.token }),
     }
   )
 );

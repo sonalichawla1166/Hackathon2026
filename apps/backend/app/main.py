@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .real.db import init_db as init_real_db
 from .real import rag as real_rag
-from .routers import account, anomalies, bill, chat, copilot, ops, outages, payments, portal, programs, sales, simulate
+from .routers import account, anomalies, auth, bill, chat, copilot, ops, outages, payments, portal, programs, sales, simulate
 
 app = FastAPI(
     title="OneGridAI API",
@@ -38,6 +38,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth.router)
 app.include_router(account.router)
 app.include_router(chat.router)
 app.include_router(bill.router)

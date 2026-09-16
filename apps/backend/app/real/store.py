@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from . import db as models
@@ -11,6 +11,10 @@ from . import db as models
 
 def get_customer(db: Session, customer_id: str) -> models.Customer | None:
     return db.get(models.Customer, customer_id)
+
+
+def customer_count(db: Session) -> int:
+    return db.scalar(select(func.count()).select_from(models.Customer)) or 0
 
 
 def electric_meter(db: Session, customer_id: str) -> models.Meter | None:

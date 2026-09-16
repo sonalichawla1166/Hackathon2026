@@ -13,6 +13,8 @@ import { AuthField } from './components/AuthField';
 import { GoogleSignInButton } from './components/GoogleSignInButton';
 import { RoleOption, RoleSelector } from './components/RoleSelector';
 import { GoogleProfile } from './googleAuth';
+import { login as loginRequest, signup as signupRequest } from '@/api/auth';
+import { ApiError } from '@/api/client';
 
 const ROLES: readonly RoleOption[] = [
   { key: 'app', label: 'Customer app', blurb: 'Bill, usage, solar and outage tools for a residential account.' },
@@ -24,6 +26,11 @@ const ROLES: readonly RoleOption[] = [
 
 /** Narrower than this and the card goes edge-to-edge and the role tiles stack. */
 const COMPACT_BREAKPOINT = 560;
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MIN_PASSWORD_LENGTH = 6;
+
+type Mode = 'login' | 'signup';
 
 function toSessionUser(profile: GoogleProfile): SessionUser {
   return { name: profile.name, email: profile.email, picture: profile.picture, method: 'google', isDemo: profile.isDemo };
@@ -44,39 +51,96 @@ export function LoginScreen() {
   const { width } = useWindowDimensions();
   const compact = width < COMPACT_BREAKPOINT;
 
+  const [mode, setMode] = useState<Mode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<Surface | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [noticeIsError, setNoticeIsError] = useState(false);
+  const [attempted, setAttempted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [googleAccount, setGoogleAccount] = useState<GoogleProfile | null>(null);
 
-  const credentialsFilled = email.trim().length > 0 && password.length > 0;
-  // A Google sign-in stands in for the email + password pair.
+  const trimmedEmail = email.trim();
+  const isEmailValid = EMAIL_RE.test(trimmedEmail);
+  const isPasswordValid = password.length >= MIN_PASSWORD_LENGTH;
+  const credentialsFilled = isEmailValid && isPasswordValid;
+  // A Google sign-in stands in for the email + passcode pair (login mode only).
   const identityReady = credentialsFilled || googleAccount !== null;
-  const canSubmit = identityReady && role !== null;
+  const canSubmit =
+    mode === 'signup' ? credentialsFilled && !submitting : identityReady && role !== null && !submitting;
 
   const pickRole = useCallback((next: Surface) => {
     setRole(next);
     setNotice(null);
   }, []);
 
-  const submit = useCallback(() => {
+  const switchMode = useCallback((next: Mode) => {
+    setMode(next);
+    setNotice(null);
+    setNoticeIsError(false);
+    setAttempted(false);
+    setPassword('');
+  }, []);
+
+  const submit = useCallback(async () => {
+    setAttempted(true);
+
+    if (mode === 'signup') {
+      if (!credentialsFilled) {
+        setNotice(`Enter a valid email and a passcode of at least ${MIN_PASSWORD_LENGTH} characters.`);
+        setNoticeIsError(true);
+        return;
+      }
+      setSubmitting(true);
+      setNotice(null);
+      try {
+        await signupRequest(trimmedEmail, password);
+        setNoticeIsError(false);
+        setNotice('Account created — log in below.');
+        setPassword('');
+        setAttempted(false);
+        setMode('login');
+      } catch (err) {
+        setNoticeIsError(true);
+        setNotice(
+          err instanceof ApiError ? err.message : "Couldn't reach the backend. Check your connection and try again."
+        );
+      } finally {
+        setSubmitting(false);
+      }
+      return;
+    }
+
+    // login mode
     if (!role) {
+      setNoticeIsError(true);
       setNotice('Pick a workspace to continue.');
       return;
     }
+    if (googleAccount) {
+      login(role, toSessionUser(googleAccount), null);
+      return;
+    }
     if (!identityReady) {
+      setNoticeIsError(true);
       setNotice('Enter your email and passcode, or continue with Google.');
       return;
     }
-    login(role, {
-      name: googleAccount?.name ?? nameFromEmail(email),
-      email: googleAccount?.email ?? email.trim(),
-      picture: googleAccount?.picture,
-      method: googleAccount ? 'google' : 'passcode',
-      isDemo: googleAccount?.isDemo,
-    });
-  }, [role, identityReady, login, googleAccount, email]);
+    setSubmitting(true);
+    setNotice(null);
+    try {
+      const res = await loginRequest(trimmedEmail, password, role);
+      login(role, { name: nameFromEmail(trimmedEmail), email: res.email, method: 'passcode' }, res.token);
+    } catch (err) {
+      setNoticeIsError(true);
+      setNotice(
+        err instanceof ApiError ? err.message : "Couldn't reach the backend. Check your connection and try again."
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  }, [mode, role, identityReady, credentialsFilled, login, googleAccount, trimmedEmail, password]);
 
   // Google returns an identity, not a workspace — so land straight in the
   // chosen surface if one is already selected, otherwise ask for it.
@@ -85,9 +149,10 @@ export function LoginScreen() {
       setGoogleAccount(profile);
       setEmail(profile.email);
       const prefix = profile.isDemo ? 'Demo sign-in (no Google account connected). ' : '';
+      setNoticeIsError(false);
       if (role) {
         if (prefix) setNotice(prefix.trim());
-        login(role, toSessionUser(profile));
+        login(role, toSessionUser(profile), null);
       } else {
         setNotice(`${prefix}Signed in as ${profile.email}. Pick a workspace to continue.`);
       }
@@ -99,6 +164,9 @@ export function LoginScreen() {
     () => (googleAccount ? `Continue as ${googleAccount.name}` : 'Continue with Google'),
     [googleAccount]
   );
+
+  const emailInvalid = attempted && !isEmailValid;
+  const passwordInvalid = attempted && mode === 'signup' ? !isPasswordValid : attempted && !googleAccount && !isPasswordValid;
 
   return (
     <View style={styles.root}>
@@ -118,9 +186,11 @@ export function LoginScreen() {
           >
             <View style={[styles.card, compact && styles.cardCompact]}>
               <Eyebrow style={styles.eyebrow}>Secure sign-in</Eyebrow>
-              <H1 style={styles.title}>Welcome back</H1>
+              <H1 style={styles.title}>{mode === 'login' ? 'Welcome back' : 'Create your account'}</H1>
               <BodyText style={styles.subtitle}>
-                One AI layer, five surfaces. Enter your details, then pick the workspace you're in today.
+                {mode === 'login'
+                  ? "One AI layer, five surfaces. Enter your details, then pick the workspace you're in today."
+                  : 'Set up your account, then sign in and pick the workspace you\'re in.'}
               </BodyText>
 
               <View style={styles.fields}>
@@ -136,6 +206,7 @@ export function LoginScreen() {
                   keyboardType="email-address"
                   textContentType="emailAddress"
                   returnKeyType="next"
+                  invalid={emailInvalid}
                 />
                 <AuthField
                   value={password}
@@ -146,51 +217,74 @@ export function LoginScreen() {
                   textContentType="password"
                   returnKeyType="go"
                   onSubmitEditing={submit}
+                  invalid={passwordInvalid}
                 />
               </View>
 
-              <Pressable
-                onPress={() => setNotice('Password help is on the roadmap — use Google sign-in for now.')}
-                hitSlop={6}
-                accessibilityRole="link"
-                style={styles.helpLink}
-              >
-                <Text style={[styles.helpText, { color: colors.textBody }]}>Having trouble signing in?</Text>
-              </Pressable>
+              {mode === 'login' && (
+                <Pressable
+                  onPress={() => setNotice('Password help is on the roadmap — use Google sign-in for now.')}
+                  hitSlop={6}
+                  accessibilityRole="link"
+                  style={styles.helpLink}
+                >
+                  <Text style={[styles.helpText, { color: colors.textBody }]}>Having trouble signing in?</Text>
+                </Pressable>
+              )}
 
-              <Caption style={styles.sectionLabel}>Sign in as</Caption>
-              <RoleSelector options={ROLES} value={role} onChange={pickRole} stacked={compact} />
+              {mode === 'login' && (
+                <>
+                  <Caption style={styles.sectionLabel}>Sign in as</Caption>
+                  <RoleSelector options={ROLES} value={role} onChange={pickRole} stacked={compact} />
+                </>
+              )}
 
               {notice ? (
-                <View style={[styles.notice, { backgroundColor: withAlpha(colors.brand, 0.14), borderColor: withAlpha(colors.brand, 0.4) }]}>
+                <View
+                  style={[
+                    styles.notice,
+                    {
+                      backgroundColor: withAlpha(noticeIsError ? colors.danger : colors.brand, 0.14),
+                      borderColor: withAlpha(noticeIsError ? colors.danger : colors.brand, 0.4),
+                    },
+                  ]}
+                >
                   <Caption color={colors.textBody}>{notice}</Caption>
                 </View>
               ) : null}
 
               <Button variant="cta" size="md" block disabled={!canSubmit} onPress={submit} style={styles.submit}>
-                Sign in
+                {mode === 'login'
+                  ? submitting
+                    ? 'Signing in…'
+                    : 'Sign in'
+                  : submitting
+                    ? 'Creating account…'
+                    : 'Create account'}
               </Button>
 
-              <View style={styles.dividerRow}>
-                <View style={[styles.rule, { backgroundColor: colors.borderMuted }]} />
-                <Caption style={styles.dividerLabel}>Or sign in with</Caption>
-                <View style={[styles.rule, { backgroundColor: colors.borderMuted }]} />
-              </View>
+              {mode === 'login' && (
+                <>
+                  <View style={styles.dividerRow}>
+                    <View style={[styles.rule, { backgroundColor: colors.borderMuted }]} />
+                    <Caption style={styles.dividerLabel}>Or sign in with</Caption>
+                    <View style={[styles.rule, { backgroundColor: colors.borderMuted }]} />
+                  </View>
 
-              <GoogleSignInButton
-                label={googleLabel}
-                onSuccess={onGoogleSuccess}
-                onNotice={setNotice}
-              />
+                  <GoogleSignInButton label={googleLabel} onSuccess={onGoogleSuccess} onNotice={setNotice} />
+                </>
+              )}
 
               <View style={styles.footerRow}>
-                <Caption>Don't have an account?</Caption>
+                <Caption>{mode === 'login' ? "Don't have an account?" : 'Already have an account?'}</Caption>
                 <Pressable
-                  onPress={() => setNotice('Ask your CG Infinity administrator to provision an account.')}
+                  onPress={() => switchMode(mode === 'login' ? 'signup' : 'login')}
                   hitSlop={6}
                   accessibilityRole="link"
                 >
-                  <Text style={[styles.footerLink, { color: colors.brandStrong }]}>Request now</Text>
+                  <Text style={[styles.footerLink, { color: colors.brandStrong }]}>
+                    {mode === 'login' ? 'Sign up' : 'Log in'}
+                  </Text>
                 </Pressable>
               </View>
             </View>
