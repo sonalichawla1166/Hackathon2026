@@ -1,14 +1,12 @@
 import React from 'react';
-import { View, Text, ScrollView, Pressable } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { View, ScrollView } from 'react-native';
 import { useUiStore, SalesScreen } from '@/state/store';
-import { makeStyles, useTheme } from '@/theme';
-import { fontFamily } from '@/theme/typography';
+import { makeStyles } from '@/theme';
 import { PageWash } from '@/components/ui/PageWash';
 import { LeadsTabIcon, PipelineTabIcon, StatsTabIcon } from '@/components/icons/TabIcons';
 import { ScreenTransition } from '@/components/ui/ScreenTransition';
 import { BoldTabBar, TabDef } from '@/components/navigation/BoldTabBar';
-import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { SurfaceHeader } from '@/components/navigation/SurfaceHeader';
 
 import { LeadsScreen } from './screens/LeadsScreen';
 import { LeadDetailScreen } from './screens/LeadDetailScreen';
@@ -42,7 +40,6 @@ function SalesFieldShell() {
   const screen = useUiStore((s) => s.salesScreen);
   const setScreen = useUiStore((s) => s.setSalesScreen);
   const selectLead = useUiStore((s) => s.selectLead);
-  const logout = useUiStore((s) => s.logout);
 
   const goToTab = (key: SalesScreen) => {
     if (key !== 'detail') selectLead(null);
@@ -52,7 +49,7 @@ function SalesFieldShell() {
   return (
     <View style={styles.shell}>
       <PageWash />
-      <Header title={TITLES[screen]} onLogout={logout} />
+      <SurfaceHeader eyebrow="CG Infinity · Field sales" title={TITLES[screen]} />
 
       <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent} keyboardShouldPersistTaps="handled">
         <ScreenTransition key={screen}>
@@ -68,59 +65,10 @@ function SalesFieldShell() {
   );
 }
 
-function Header({ title, onLogout }: { title: string; onLogout: () => void }) {
-  const styles = useStyles();
-  const { gradients } = useTheme();
-  return (
-    <LinearGradient colors={gradients.brand} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.header}>
-      <View>
-        <Text style={styles.headerEyebrow}>OneGridAI · Field sales</Text>
-        <Text style={styles.headerTitle}>{title}</Text>
-      </View>
-      <View style={styles.headerActions}>
-        <ThemeToggle onInverse compact />
-        <Pressable onPress={onLogout} style={styles.logoutBtn}>
-          <Text style={styles.logoutLabel}>Log out</Text>
-        </Pressable>
-      </View>
-    </LinearGradient>
-  );
-}
 
 const useStyles = makeStyles((t) => ({
-  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   fill: { flex: 1, width: '100%' },
   shell: { flex: 1, backgroundColor: t.colors.page },
-  header: {
-    paddingTop: 24,
-    paddingBottom: 15,
-    paddingHorizontal: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  logoutBtn: {
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 5,
-    borderWidth: 2,
-    borderColor: t.colors.borderInverse,
-  },
-  logoutLabel: { fontFamily: fontFamily.bodyBold, fontSize: 11, color: t.colors.textInverse },
-  headerEyebrow: {
-    fontFamily: fontFamily.bodyBlack,
-    fontSize: 9,
-    letterSpacing: 1.35,
-    textTransform: 'uppercase',
-    color: t.colors.textInverseMuted,
-  },
-  headerTitle: {
-    fontFamily: fontFamily.heading,
-    fontSize: 19,
-    color: t.colors.textInverse,
-    marginTop: 4,
-  },
   body: { flex: 1, backgroundColor: 'transparent' },
   bodyContent: { paddingBottom: 8 },
 }));

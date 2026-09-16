@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useUiStore, Surface } from '@/state/store';
+import { SessionUser, useUiStore, Surface } from '@/state/store';
 import { makeStyles, radius, spacing, useTheme, withAlpha } from '@/theme';
 import { fontFamily } from '@/theme/typography';
 import { Button } from '@/components/ui/Button';
@@ -24,6 +24,18 @@ const ROLES: readonly RoleOption[] = [
 
 /** Narrower than this and the card goes edge-to-edge and the role tiles stack. */
 const COMPACT_BREAKPOINT = 560;
+
+function toSessionUser(profile: GoogleProfile): SessionUser {
+  return { name: profile.name, email: profile.email, picture: profile.picture, method: 'google', isDemo: profile.isDemo };
+}
+
+/** "maria.alvarez@x.com" → "Maria Alvarez", so the profile menu has a name. */
+function nameFromEmail(email: string): string {
+  const local = email.trim().split('@')[0] ?? '';
+  const words = local.split(/[._-]+/).filter(Boolean);
+  if (words.length === 0) return 'Signed-in user';
+  return words.map((w) => w[0].toUpperCase() + w.slice(1)).join(' ');
+}
 
 export function LoginScreen() {
   const login = useUiStore((s) => s.login);
@@ -57,8 +69,14 @@ export function LoginScreen() {
       setNotice('Enter your email and passcode, or continue with Google.');
       return;
     }
-    login(role);
-  }, [role, identityReady, login]);
+    login(role, {
+      name: googleAccount?.name ?? nameFromEmail(email),
+      email: googleAccount?.email ?? email.trim(),
+      picture: googleAccount?.picture,
+      method: googleAccount ? 'google' : 'passcode',
+      isDemo: googleAccount?.isDemo,
+    });
+  }, [role, identityReady, login, googleAccount, email]);
 
   // Google returns an identity, not a workspace — so land straight in the
   // chosen surface if one is already selected, otherwise ask for it.
@@ -69,7 +87,7 @@ export function LoginScreen() {
       const prefix = profile.isDemo ? 'Demo sign-in (no Google account connected). ' : '';
       if (role) {
         if (prefix) setNotice(prefix.trim());
-        login(role);
+        login(role, toSessionUser(profile));
       } else {
         setNotice(`${prefix}Signed in as ${profile.email}. Pick a workspace to continue.`);
       }

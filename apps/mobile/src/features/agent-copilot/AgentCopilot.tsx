@@ -2,21 +2,25 @@ import React from 'react';
 import { View, ScrollView, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useCopilotCall, useAdvanceCall, useUseSuggestion } from '@/api/hooks';
-import { useUiStore } from '@/state/store';
 import { makeStyles, radius, useTheme } from '@/theme';
 import { fontFamily } from '@/theme/typography';
-import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { PageWash } from '@/components/ui/PageWash';
+import { ProfileMenu } from '@/components/ui/ProfileMenu';
 import { Eyebrow, BodyText, Caption } from '@/components/ui/Text';
 import { Button } from '@/components/ui/Button';
 import { CitationRow } from '@/components/ui/Citation';
 import { LoadingState, ErrorState } from '@/components/ui/AsyncState';
+
+const COPILOT_PROFILE_DETAILS = [
+  { label: 'Queue', value: 'Residential billing' },
+  { label: 'Access', value: 'Agent copilot' },
+] as const;
 
 export function AgentCopilot() {
   const styles = useStyles();
   const { colors, gradients } = useTheme();
   const { width } = useWindowDimensions();
   const compact = width < 900;
-  const logout = useUiStore((s) => s.logout);
 
   const { data, isPending, isError, error, refetch } = useCopilotCall();
   const advance = useAdvanceCall();
@@ -66,13 +70,10 @@ export function AgentCopilot() {
           </BodyText>
         </View>
         <View style={styles.headerActions}>
-          <ThemeToggle />
-          <Button variant="outlineDark" size="md" onPress={logout}>
-            Log out
-          </Button>
           <Button variant="primary" size="md" onPress={() => advance.mutate()} disabled={advance.isPending}>
             {advanceLabel}
           </Button>
+          <ProfileMenu details={COPILOT_PROFILE_DETAILS} />
         </View>
       </View>
 
@@ -143,6 +144,7 @@ export function AgentCopilot() {
 
   return (
     <View style={styles.fill}>
+      <PageWash />
       {compact ? (
         <ScrollView style={styles.fill} contentContainerStyle={styles.stackContent}>
           {left}
@@ -168,8 +170,8 @@ export function AgentCopilot() {
 
 const useStyles = makeStyles((t) => ({
   fill: { flex: 1, backgroundColor: t.colors.page },
-  stackContent: { backgroundColor: t.colors.page, flexGrow: 1 },
-  wideRow: { flex: 1, flexDirection: 'row', backgroundColor: t.colors.page },
+  stackContent: { flexGrow: 1 },
+  wideRow: { flex: 1, flexDirection: 'row' },
 
   growContent: { flexGrow: 1 },
   leftColWide: { flex: 0, width: 270 },

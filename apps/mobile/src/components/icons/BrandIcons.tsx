@@ -60,3 +60,23 @@ export function EyeIcon({ size = 18, color = 'currentColor', off = false }: Icon
     </Svg>
   );
 }
+
+/** Door with an out-arrow — the sign-out action. */
+export function LogoutIcon({ size = 18, color = 'currentColor' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M9.4 20.6H5.6A1.6 1.6 0 0 1 4 19V5A1.6 1.6 0 0 1 5.6 3.4h3.8" />
+      <Path d="M15.6 16.4 20 12l-4.4-4.4M20 12H9.4" />
+    </Svg>
+  );
+}
+
+/** Bell with a notification dot — the alerts button in the app header. */
+export function BellIcon({ size = 18, color = 'currentColor' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M18.2 16.4H5.8l1.3-2.2V10a4.9 4.9 0 0 1 9.8 0v4.2z" />
+      <Path d="M10.2 19.2a2 2 0 0 0 3.6 0" />
+    </Svg>
+  );
+}

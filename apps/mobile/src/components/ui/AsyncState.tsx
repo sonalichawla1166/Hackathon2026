@@ -1,6 +1,7 @@
 import React from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
-import { makeStyles, radius, useTheme, withAlpha } from '@/theme';
+import { Pressable, Text, View } from 'react-native';
+import { makeStyles, radius, withAlpha } from '@/theme';
+import { AppLoader } from './AppLoader';
 import { fontFamily } from '@/theme/typography';
 import { ApiError } from '@/api/client';
 
@@ -13,7 +14,6 @@ const useStyles = makeStyles((t) => ({
     borderWidth: 1,
     borderColor: withAlpha(t.colors.danger, 0.25),
   },
-  label: { fontFamily: fontFamily.body, fontSize: 13, color: t.colors.textMuted },
   errorTitle: { fontFamily: fontFamily.heading, fontSize: 15, color: t.colors.textHeading, textAlign: 'center' },
   errorMessage: { fontFamily: fontFamily.body, fontSize: 12.5, color: t.colors.textMuted, textAlign: 'center' },
   retryBtn: {
@@ -27,15 +27,9 @@ const useStyles = makeStyles((t) => ({
   retryText: { fontFamily: fontFamily.bodyBold, fontSize: 12.5, color: t.colors.accent },
 }));
 
+/** Every screen's "waiting on the backend" state — the shared Lottie loader. */
 export function LoadingState({ label = 'Loading…' }: { label?: string }) {
-  const styles = useStyles();
-  const { colors } = useTheme();
-  return (
-    <View style={styles.wrap}>
-      <ActivityIndicator color={colors.accent} />
-      <Text style={styles.label}>{label}</Text>
-    </View>
-  );
+  return <AppLoader label={label} />;
 }
 
 export function ErrorState({ error, onRetry }: { error: unknown; onRetry?: () => void }) {

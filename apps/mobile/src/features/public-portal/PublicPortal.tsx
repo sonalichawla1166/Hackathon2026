@@ -1,11 +1,13 @@
 import React from 'react';
-import { View, Text, Pressable, ScrollView, useWindowDimensions } from 'react-native';
+import { View, Text, ScrollView, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useUiStore } from '@/state/store';
 import { usePortalNav, usePortalRates, usePortalSolar } from '@/api/hooks';
 import { makeStyles, radius, useTheme } from '@/theme';
 import { fontFamily } from '@/theme/typography';
-import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { CgInfinityLogo } from '@/components/brand/CgInfinityLogo';
+import { PageWash } from '@/components/ui/PageWash';
+import { ProfileMenu } from '@/components/ui/ProfileMenu';
 import { RangeSlider } from '@/components/ui/RangeSlider';
 import { LoadingState, ErrorState } from '@/components/ui/AsyncState';
 import { RatePlanCards } from './RatePlanCards';
@@ -35,33 +37,41 @@ function PortalBody() {
   const compact = width < 900;
 
   return (
-    <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-      <TopNav compact={compact} />
-      <Hero compact={compact} />
-      <View style={[styles.body, compact ? styles.bodyCompact : styles.bodyWide]}>
-        <View style={styles.mainCol}>
-          <UsageCard />
-          <RatePlanCardsSection compact={compact} />
-          <SolarCard />
-          <FaqAccordion />
+    <View style={styles.shell}>
+      <PageWash />
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+        <TopNav compact={compact} />
+        <Hero compact={compact} />
+        <View style={[styles.body, compact ? styles.bodyCompact : styles.bodyWide]}>
+          <View style={styles.mainCol}>
+            <UsageCard />
+            <RatePlanCardsSection compact={compact} />
+            <SolarCard />
+            <FaqAccordion />
+          </View>
+          <View style={[styles.rail, compact ? styles.railCompact : styles.railWide]}>
+            <AskPanel />
+            <OutageMapWidget />
+          </View>
         </View>
-        <View style={[styles.rail, compact ? styles.railCompact : styles.railWide]}>
-          <AskPanel />
-          <OutageMapWidget />
-        </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
+
+const PORTAL_PROFILE_DETAILS = [
+  { label: 'Utility', value: 'Con Edison' },
+  { label: 'Access', value: 'Public self-service' },
+] as const;
 
 function TopNav({ compact }: { compact: boolean }) {
   const styles = useStyles();
   const { data } = usePortalNav();
-  const logout = useUiStore((s) => s.logout);
 
   return (
     <View style={[styles.nav, { paddingHorizontal: compact ? 20 : 40 }]}>
       <View style={styles.navLeft}>
+        <CgInfinityLogo size={compact ? 26 : 30} withWordmark={false} />
         <Text style={styles.wordmark}>Con Edison</Text>
         {!compact && !!data && (
           <View style={styles.navItems}>
@@ -75,10 +85,7 @@ function TopNav({ compact }: { compact: boolean }) {
       </View>
       <View style={styles.navRight}>
         {!compact && !!data && <Text style={styles.poweredBy}>{data.poweredBy}</Text>}
-        <ThemeToggle onInverse compact />
-        <Pressable onPress={logout} style={styles.logoutBtn}>
-          <Text style={styles.logoutLabel}>Log out</Text>
-        </Pressable>
+        <ProfileMenu onInverse details={PORTAL_PROFILE_DETAILS} />
       </View>
     </View>
   );
@@ -174,7 +181,8 @@ function SolarCard() {
 
 const useStyles = makeStyles((t) => ({
   fill: { flex: 1, width: '100%' },
-  scroll: { flex: 1, width: '100%', backgroundColor: t.colors.page },
+  scroll: { flex: 1, width: '100%', backgroundColor: 'transparent' },
+  shell: { flex: 1, backgroundColor: t.colors.page },
   scrollContent: { flexGrow: 1, paddingBottom: 24 },
 
   nav: {
@@ -193,14 +201,6 @@ const useStyles = makeStyles((t) => ({
   navItem: { fontFamily: fontFamily.body, fontSize: 14, color: t.colors.textInverseMuted },
   navRight: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   poweredBy: { fontFamily: fontFamily.body, fontSize: 12, color: t.colors.textInverseMuted },
-  logoutBtn: {
-    paddingVertical: 7,
-    paddingHorizontal: 12,
-    borderRadius: 5,
-    borderWidth: 2,
-    borderColor: t.colors.borderInverse,
-  },
-  logoutLabel: { fontFamily: fontFamily.bodyBold, fontSize: 12, color: t.colors.textInverse },
 
   hero: {},
   heroInner: { maxWidth: 760 },

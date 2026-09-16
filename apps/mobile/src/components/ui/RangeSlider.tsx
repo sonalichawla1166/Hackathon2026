@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { useTheme } from '@/theme';
 
@@ -14,8 +14,9 @@ interface RangeSliderProps {
 export function RangeSlider({ value, minimumValue, maximumValue, step, onValueChange }: RangeSliderProps) {
   const { colors } = useTheme();
   return (
-    <View>
+    <View style={styles.track}>
       <Slider
+        style={styles.slider}
         value={value}
         minimumValue={minimumValue}
         maximumValue={maximumValue}
@@ -28,3 +29,10 @@ export function RangeSlider({ value, minimumValue, maximumValue, step, onValueCh
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  // react-native-slider measures to zero width on web unless the box is
+  // definite, which drops the track and wraps the thumb onto its own line.
+  track: { width: '100%', justifyContent: 'center' },
+  slider: { width: '100%', height: 36 },
+});

@@ -133,10 +133,14 @@ src/
                           list is sent to the backend as a query param)
   components/ui/          shared primitives: Button, Card, Citation, Badge,
                           Chip, RangeSlider, Text styles, ThemeToggle,
-                          LoadingState/ErrorState
+                          AppLoader (the one Lottie spinner), PageWash (the
+                          page ground), ProfileMenu (account + appearance +
+                          sign out), LoadingState/ErrorState
   components/brand/       the CG Infinity logo mark + wordmark
-  components/icons/       tab bar SVG icons (paths lifted from the prototype)
-                          plus Google/sun/moon/eye glyphs
+  components/icons/       one 24x24 stroke icon set for the tab bars, plus
+                          Google/sun/moon/eye/bell/logout glyphs
+  components/navigation/  SurfaceHeader (the top bar every surface shares)
+                          and BoldTabBar (the floating bottom tabs)
   components/chrome/      PhoneFrame / BrowserFrame — the adaptive device-chrome
                           wrapper described above
   features/
@@ -180,6 +184,28 @@ export function Screen() {
   ...
 }
 ```
+
+## App chrome
+
+Every surface shares the same three pieces, so they look like one product:
+
+- **`SurfaceHeader`** — CG Infinity's mark, the product name, the screen title
+  and the account avatar. Surface-specific buttons (the customer app's alert
+  bell) go in via `actions`.
+- **`ProfileMenu`** — the avatar opens the one place that holds who you are,
+  what workspace you're in, how you signed in, the light/dark switch and sign
+  out. A dropdown on a wide screen, a bottom sheet under 620px. Surfaces add
+  their own rows with `details`.
+- **`BoldTabBar`** — a floating, rounded bottom bar with a fixed-width amber
+  capsule on the active tab (fixed width on purpose: a capsule stretched
+  across a wide slot reads as a banner, not a selection).
+
+`PageWash` sits behind each shell and paints the same graded ground plus soft
+brand haloes as the sign-in screen, so the inside of the app matches the door.
+
+Waiting on the backend always looks the same: `AppLoader` plays
+`assets/lottie/loading.json`, and falls back to a plain spinner if the Lottie
+runtime cannot mount.
 
 ## Signing in
 

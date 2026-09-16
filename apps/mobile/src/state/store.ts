@@ -11,6 +11,27 @@ import { Platform } from 'react-native';
 // gets passed as a query param to a stateless GET, per API.md.
 
 export type Surface = 'app' | 'portal' | 'ops' | 'copilot' | 'sales';
+
+/** Who is signed in. Filled at login and shown in the profile menu. */
+export interface SessionUser {
+  name: string;
+  email: string;
+  /** Avatar URL, when the identity provider gave us one. */
+  picture?: string;
+  /** How they signed in — the profile menu says so. */
+  method: 'google' | 'passcode';
+  /** True for the stand-in identity used when Google is not configured. */
+  isDemo?: boolean;
+}
+
+/** Display name for each workspace, used by the header and profile menu. */
+export const SURFACE_LABELS: Record<Surface, string> = {
+  app: 'Customer app',
+  portal: 'Public portal',
+  ops: 'Ops dashboard',
+  copilot: 'Agent copilot',
+  sales: 'Field sales',
+};
 export type AppScreen = 'home' | 'chat' | 'bill' | 'sim' | 'alert' | 'programs' | 'outage' | 'pay';
 export type OpsView = 'maint' | 'dr';
 export type SalesScreen = 'leads' | 'detail' | 'stats' | 'pipeline';
@@ -30,7 +51,8 @@ const webStorage = {
 
 interface UiState {
   session: Surface | null;
-  login: (role: Surface) => void;
+  user: SessionUser | null;
+  login: (role: Surface, user: SessionUser) => void;
   logout: () => void;
 
   screen: AppScreen;
@@ -86,9 +108,10 @@ export const useUiStore = create<UiState>()(
   persist(
     (set) => ({
       session: null,
-      login: (role) =>
-        set({ session: role, screen: 'home', opsView: 'maint', salesScreen: 'leads', selectedLeadId: null }),
-      logout: () => set({ session: null }),
+      user: null,
+      login: (role, user) =>
+        set({ session: role, user, screen: 'home', opsView: 'maint', salesScreen: 'leads', selectedLeadId: null }),
+      logout: () => set({ session: null, user: null }),
 
       screen: 'home',
       setScreen: (screen) => set({ screen }),
@@ -146,7 +169,7 @@ export const useUiStore = create<UiState>()(
     {
       name: 'onegridai-session',
       storage: createJSONStorage(() => webStorage),
-      partialize: (s) => ({ session: s.session }),
+      partialize: (s) => ({ session: s.session, user: s.user }),
     }
   )
 );
