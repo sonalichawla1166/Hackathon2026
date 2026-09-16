@@ -294,10 +294,34 @@ KWH_HISTORY = [
 
 PORTAL_NAV = ["Rates", "Solar", "Outages", "Support"]
 
-OUTAGE_PINS = [
+# 412 W 47th St — the demo customer's service address, and the centre of the
+# outage map. The pins keep their original 0-1 layout coordinates so the old
+# schematic still works; `lat`/`lng` are that same arrangement projected onto
+# real ground so the pins can sit on map tiles.
+OUTAGE_CENTER = {"lat": 40.7614, "lng": -73.9903}
+_OUTAGE_SPAN_LNG = 0.016  # ~1.3 km across at this latitude
+_OUTAGE_SPAN_LAT = 0.012  # ~1.3 km top to bottom
+
+_OUTAGE_LAYOUT = [
     {"x": 0.18, "y": 0.24, "d": 16, "danger": True}, {"x": 0.62, "y": 0.3, "d": 22, "danger": True},
     {"x": 0.72, "y": 0.68, "d": 13, "danger": False}, {"x": 0.31, "y": 0.72, "d": 18, "danger": False},
 ]
+
+
+def _with_coords(pin: dict) -> dict:
+    """Project a 0-1 layout pin onto ground near the service address.
+
+    `y` grows downwards on the schematic and latitude grows upwards, hence the
+    subtraction.
+    """
+    return {
+        **pin,
+        "lat": round(OUTAGE_CENTER["lat"] - (pin["y"] - 0.5) * _OUTAGE_SPAN_LAT, 6),
+        "lng": round(OUTAGE_CENTER["lng"] + (pin["x"] - 0.5) * _OUTAGE_SPAN_LNG, 6),
+    }
+
+
+OUTAGE_PINS = [_with_coords(p) for p in _OUTAGE_LAYOUT]
 
 PAY_OPTIONS = [
     {"label": "Visa ending 4417", "detail": "Default card"},

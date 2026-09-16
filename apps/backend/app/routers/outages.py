@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends
 
-from ..data import OUTAGE_OPTIONS, OUTAGE_PINS
+from ..data import OUTAGE_CENTER, OUTAGE_OPTIONS, OUTAGE_PINS
 from ..schemas import OutageReportRequest
 from ..session import Session, current_session
 
@@ -13,6 +13,7 @@ router = APIRouter(tags=["outages"])
 def outage_map():
     return {
         "pins": OUTAGE_PINS,
+        "center": OUTAGE_CENTER,
         "caption": "3 active outages within 2 miles. Yours is not one of them, so this is likely inside your home.",
         "portalCaption": "7 active events, 2,140 customers affected, 6 crews assigned.",
         "options": OUTAGE_OPTIONS,

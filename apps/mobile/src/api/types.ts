@@ -71,14 +71,20 @@ export interface ProgramsResult {
 }
 
 export interface OutagePin {
+  /** Layout coordinates, 0-1, kept from the original schematic map. */
   x: number;
   y: number;
   d: number;
   danger: boolean;
+  /** The same arrangement projected onto real ground, for the tiled map. */
+  lat: number;
+  lng: number;
 }
 
 export interface OutageMap {
   pins: OutagePin[];
+  /** The service address the pins are arranged around. */
+  center: { lat: number; lng: number };
   caption: string;
   portalCaption: string;
   options: string[];

@@ -66,9 +66,17 @@ export function LeadsScreen() {
     </View>
   );
 
-  // The canvas is schematic, so extra height just gives the pins room to
-  // separate — worth it in a desktop column.
-  const map = <LeadsMap leads={data.leads} onOpenLead={selectLead} height={desktop ? 420 : undefined} />;
+  // The map opens on wherever the rep is standing and draws the radius the
+  // leads were pulled from, so the slider above has something to move.
+  const map = (
+    <LeadsMap
+      leads={data.leads}
+      onOpenLead={selectLead}
+      center={coords}
+      radiusKm={radiusKm}
+      height={desktop ? 420 : undefined}
+    />
+  );
 
   const list = (
     <View style={styles.listBlock}>

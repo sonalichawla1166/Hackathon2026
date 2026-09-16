@@ -6,6 +6,8 @@ import { makeStyles, radius, useTheme, useIsDesktop } from '@/theme';
 import { fontFamily } from '@/theme/typography';
 import { Button } from '@/components/ui/Button';
 import { LoadingState, ErrorState } from '@/components/ui/AsyncState';
+import { MapCanvas } from '@/components/map/MapCanvas';
+import type { MapMarker } from '@/components/map/types';
 
 export function OutageScreen() {
   const styles = useStyles();
@@ -22,6 +24,29 @@ export function OutageScreen() {
   const disabled = reportPicks.length === 0;
   const reported = reportOutage.data?.reported ?? false;
 
+  // Reported outages as dots on real tiles, with the service address marked.
+  const markers: MapMarker[] = [
+    {
+      id: '__home',
+      lat: data.center.lat,
+      lng: data.center.lng,
+      color: colors.cta,
+      kind: 'me',
+      label: 'Your service address',
+      selectable: false,
+    },
+    ...data.pins.map((p, i) => ({
+      id: `pin-${i}`,
+      lat: p.lat,
+      lng: p.lng,
+      color: p.danger ? colors.danger : colors.accent,
+      kind: 'dot' as const,
+      size: p.d,
+      label: p.danger ? 'Confirmed outage' : 'Reported fault',
+      selectable: false,
+    })),
+  ];
+
   // The canvas runs to the card's own edges — a framed map reads as a picture
   // of a map. Title and caption carry the padding instead.
   const map = (
@@ -29,25 +54,13 @@ export function OutageScreen() {
       <View style={[styles.mapHeader, desktop && styles.mapHeaderDesktop]}>
         <Text style={styles.mapTitle}>Reported near you</Text>
       </View>
-      <View style={[styles.map, desktop && styles.mapDesktop]}>
-        {data.pins.map((p, i) => (
-          <View
-            key={i}
-            style={{
-              position: 'absolute',
-              left: `${p.x * 100}%`,
-              top: `${p.y * 100}%`,
-              width: p.d,
-              height: p.d,
-              borderRadius: p.d / 2,
-              backgroundColor: p.danger ? colors.danger : colors.accent,
-              borderWidth: 2,
-              borderColor: colors.surfaceMapCanvas,
-            }}
-          />
-        ))}
-        <View style={styles.youAreHere} />
-      </View>
+      <MapCanvas
+        center={data.center}
+        zoom={14}
+        height={desktop ? 420 : 200}
+        markers={markers}
+        label="Map of outages reported near your address"
+      />
       <View style={[styles.mapFooter, desktop && styles.mapFooterDesktop]}>
         <Text style={styles.mapCaption}>{data.caption}</Text>
       </View>
@@ -126,13 +139,6 @@ const useStyles = makeStyles((t) => ({
   mapFooter: { paddingHorizontal: 15, paddingVertical: 12 },
   mapFooterDesktop: { paddingHorizontal: 20, paddingVertical: 14 },
   mapTitle: { fontFamily: fontFamily.heading, fontSize: 12.5, color: t.colors.textHeading },
-  map: { height: 150, backgroundColor: t.colors.surfaceMapCanvas },
-  // Pins are placed as percentages, so the canvas can grow without moving them.
-  mapDesktop: { height: 420 },
-  youAreHere: {
-    position: 'absolute', left: '47%', top: '52%', width: 14, height: 14, borderRadius: 7,
-    backgroundColor: t.colors.inverseSolid, borderWidth: 3, borderColor: t.colors.cta,
-  },
   mapCaption: { fontFamily: fontFamily.body, fontSize: 11.5, color: t.colors.textMuted, lineHeight: 16 },
   formCard: { backgroundColor: t.colors.surfaceCard, borderWidth: 2, borderColor: t.colors.surfaceMuted, borderRadius: 5.4, padding: 15 },
   formCardDesktop: { padding: 20 },

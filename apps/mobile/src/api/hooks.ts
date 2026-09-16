@@ -1,7 +1,7 @@
 // react-query hooks wrapping apps/backend's API (see apps/backend/API.md).
 // Screens should use these instead of calling the api/*.ts functions or
 // fetch() directly — it keeps cache keys and invalidation consistent.
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useUiStore } from '@/state/store';
 import * as accountApi from './account';
@@ -55,7 +55,14 @@ export function useBillExplain() {
 // ---- Solar simulator (shared value, different screens) --------------------
 
 export function useSimulate(solarKw: number) {
-  return useQuery({ queryKey: ['simulate', solarKw], queryFn: () => simulateApi.getSimulate(solarKw) });
+  return useQuery({
+    queryKey: ['simulate', solarKw],
+    queryFn: () => simulateApi.getSimulate(solarKw),
+    // Keep the last result on screen while a new one loads: these keys change
+    // as the user drags a control, and dropping to the loader would tear the
+    // whole view down mid-interaction.
+    placeholderData: keepPreviousData,
+  });
 }
 
 // ---- Anomaly alert ----------------------------------------------------------
@@ -171,6 +178,10 @@ export function useDrCohort(window: number, picks: number[]) {
   return useQuery({
     queryKey: ['ops', 'dr', window, picks],
     queryFn: () => opsApi.getDrCohort(window, picks),
+    // Keep the last result on screen while a new one loads: these keys change
+    // as the user drags a control, and dropping to the loader would tear the
+    // whole view down mid-interaction.
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -208,6 +219,10 @@ export function useSalesLeads(lat: number, lng: number, radiusKm: number) {
   return useQuery({
     queryKey: ['sales', 'leads', lat, lng, radiusKm],
     queryFn: () => salesApi.getLeads(lat, lng, radiusKm),
+    // Keep the last result on screen while a new one loads: these keys change
+    // as the user drags a control, and dropping to the loader would tear the
+    // whole view down mid-interaction.
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -236,6 +251,10 @@ export function useSalesStats(lat: number, lng: number, radiusKm: number) {
   return useQuery({
     queryKey: ['sales', 'stats', lat, lng, radiusKm],
     queryFn: () => salesApi.getStats(lat, lng, radiusKm),
+    // Keep the last result on screen while a new one loads: these keys change
+    // as the user drags a control, and dropping to the loader would tear the
+    // whole view down mid-interaction.
+    placeholderData: keepPreviousData,
   });
 }
 
