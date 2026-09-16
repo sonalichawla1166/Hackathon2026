@@ -26,6 +26,12 @@ interface SurfaceHeaderProps {
   actions?: readonly HeaderAction[];
   /** Extra rows for the profile menu, e.g. the account number. */
   profileDetails?: ReadonlyArray<{ label: string; value: string }>;
+  /**
+   * Whether the profile menu carries the appearance switch and sign out. The
+   * desktop customer layout turns this off because its sidebar already pins
+   * both to the bottom of the navigation column. On by default.
+   */
+  showAccountControls?: boolean;
 }
 
 /**
@@ -36,7 +42,7 @@ interface SurfaceHeaderProps {
  * screen title under it, and the account menu on the right. The theme switch
  * and sign out live inside that menu rather than crowding the bar.
  */
-export function SurfaceHeader({ eyebrow, title, actions = [], profileDetails = [] }: SurfaceHeaderProps) {
+export function SurfaceHeader({ eyebrow, title, actions = [], profileDetails = [], showAccountControls = true }: SurfaceHeaderProps) {
   const styles = useStyles();
   const { colors, gradients } = useTheme();
   const { width } = useWindowDimensions();
@@ -68,7 +74,7 @@ export function SurfaceHeader({ eyebrow, title, actions = [], profileDetails = [
             {action.badge ? <View style={[styles.badgeDot, { backgroundColor: colors.dangerSoft }]} /> : null}
           </Pressable>
         ))}
-        <ProfileMenu onInverse details={profileDetails} />
+        <ProfileMenu onInverse details={profileDetails} showAccountControls={showAccountControls} />
       </View>
     </LinearGradient>
   );

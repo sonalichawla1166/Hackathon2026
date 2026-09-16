@@ -112,3 +112,36 @@ export function MicIcon({ size = 22, color = 'currentColor', active }: IconProps
     </Svg>
   );
 }
+
+// ── Grid operations ──────────────────────────────────────────────────────────
+
+/** Rising bars with a trend line — the business impact and ROI summary. */
+export function ImpactTabIcon({ size = 22, color = 'currentColor', active }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" stroke={color} strokeWidth={stroke(active)} {...BASE}>
+      <Path d="M3.6 20.4h16.8" />
+      <Path d="M7 20.4v-5.6M12 20.4V9.2M17 20.4V12.6" />
+      <Path d="m4.6 9.6 4.2-3.9 3.6 2.6 6.8-4.9" />
+    </Svg>
+  );
+}
+
+/** Spanner over an asset — the predictive maintenance queue. */
+export function MaintenanceTabIcon({ size = 22, color = 'currentColor', active }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" stroke={color} strokeWidth={stroke(active)} {...BASE}>
+      <Path d="M15.3 3.4a5 5 0 0 0-5.9 6.4L3.6 15.6a1.9 1.9 0 0 0 2.7 2.7l5.8-5.8a5 5 0 0 0 6.4-5.9l-2.8 2.8-2.8-.7-.7-2.8z" />
+      <Path d="M5.1 17.1h.01" />
+    </Svg>
+  );
+}
+
+/** Bolt inside a dial — a demand response event on the grid. */
+export function DemandTabIcon({ size = 22, color = 'currentColor', active }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" stroke={color} strokeWidth={stroke(active)} {...BASE}>
+      <Circle cx={12} cy={12} r={8.6} />
+      <Path d="M12.9 7.3 9.4 12.6h3.1l-.9 4.1 3.5-5.3h-3.1z" />
+    </Svg>
+  );
+}

@@ -8,6 +8,7 @@ import { fontFamily } from '@/theme/typography';
 import { Badge } from '@/components/ui/Badge';
 import { outcomeColor } from './outcomeColors';
 
+/** Default canvas height; a desktop column passes something taller. */
 const VIEWPORT_HEIGHT = 230;
 const MAX_ZOOM = 2.5;
 const ZOOM_STEP = 0.5;
@@ -17,7 +18,15 @@ const ZOOM_STEP = 0.5;
 // relative to that — same illustrative-pin convention as the old static
 // dots, but now with tappable pin markers, a zoom/pan canvas, and a
 // bottom-docked callout instead of a plain read-only dot field.
-export function LeadsMap({ leads, onOpenLead }: { leads: SalesLead[]; onOpenLead: (id: string) => void }) {
+export function LeadsMap({
+  leads,
+  onOpenLead,
+  height = VIEWPORT_HEIGHT,
+}: {
+  leads: SalesLead[];
+  onOpenLead: (id: string) => void;
+  height?: number;
+}) {
   const styles = useStyles();
   const { colors, gradients } = useTheme();
   const [zoom, setZoom] = useState(1);
@@ -26,7 +35,7 @@ export function LeadsMap({ leads, onOpenLead }: { leads: SalesLead[]; onOpenLead
 
   const active = leads.find((l) => l.id === activeId) ?? null;
   const canvasW = width * zoom;
-  const canvasH = VIEWPORT_HEIGHT * zoom;
+  const canvasH = height * zoom;
 
   const canvas = (
     <LinearGradient
@@ -45,10 +54,10 @@ export function LeadsMap({ leads, onOpenLead }: { leads: SalesLead[]; onOpenLead
 
   return (
     <View style={styles.wrap}>
-      <View style={styles.viewport} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
+      <View style={[styles.viewport, { height }]} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
         {zoom > 1 && width > 0 ? (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ height: VIEWPORT_HEIGHT }}>
-            <ScrollView showsVerticalScrollIndicator={false} style={{ width: canvasW, height: VIEWPORT_HEIGHT }}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ height }}>
+            <ScrollView showsVerticalScrollIndicator={false} style={{ width: canvasW, height }}>
               {canvas}
             </ScrollView>
           </ScrollView>

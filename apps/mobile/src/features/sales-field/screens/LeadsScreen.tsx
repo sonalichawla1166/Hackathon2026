@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { useUiStore } from '@/state/store';
 import { useSalesLeads } from '@/api/hooks';
-import { makeStyles, radius, useTheme } from '@/theme';
+import { makeStyles, radius, useTheme, useIsDesktop } from '@/theme';
 import { fontFamily } from '@/theme/typography';
 import { Badge } from '@/components/ui/Badge';
 import { RangeSlider } from '@/components/ui/RangeSlider';
@@ -15,6 +15,7 @@ import { stageColor } from '../stageColors';
 export function LeadsScreen() {
   const styles = useStyles();
   const { colors } = useTheme();
+  const desktop = useIsDesktop();
   const { coords, usingDeviceLocation, status, useDeviceLocation, useTerritoryBase } = useSalesLocation();
   const radiusKm = useUiStore((s) => s.salesRadiusKm);
   const setRadiusKm = useUiStore((s) => s.setSalesRadiusKm);
@@ -25,42 +26,52 @@ export function LeadsScreen() {
   if (isPending) return <LoadingState label="Finding leads near you…" />;
   if (isError) return <ErrorState error={error} onRetry={refetch} />;
 
-  return (
-    <View style={[styles.wrap, isFetching && { opacity: 0.7 }]}>
-      <View style={styles.locationRow}>
-        <Text style={styles.locationNote}>
-          {usingDeviceLocation
-            ? 'Using your current location'
-            : status === 'requesting'
-              ? 'Finding your location…'
-              : status === 'denied'
-                ? 'Location permission denied — using your territory base'
-                : status === 'unavailable'
-                  ? "Couldn't get your location — using your territory base"
-                  : 'Using your assigned territory base'}
-        </Text>
-        <Pressable onPress={usingDeviceLocation ? useTerritoryBase : useDeviceLocation}>
-          <Text style={styles.locationAction}>{usingDeviceLocation ? 'Use territory base' : 'Use my location'}</Text>
-        </Pressable>
-      </View>
+  const location = (
+    <View style={styles.locationRow}>
+      <Text style={styles.locationNote}>
+        {usingDeviceLocation
+          ? 'Using your current location'
+          : status === 'requesting'
+            ? 'Finding your location…'
+            : status === 'denied'
+              ? 'Location permission denied — using your territory base'
+              : status === 'unavailable'
+                ? "Couldn't get your location — using your territory base"
+                : 'Using your assigned territory base'}
+      </Text>
+      <Pressable onPress={usingDeviceLocation ? useTerritoryBase : useDeviceLocation}>
+        <Text style={styles.locationAction}>{usingDeviceLocation ? 'Use territory base' : 'Use my location'}</Text>
+      </Pressable>
+    </View>
+  );
 
-      <View style={styles.kpiRow}>
-        {data.kpis.map((k) => (
-          <View key={k.k} style={styles.kpiCard}>
-            <Text style={styles.kpiValue}>{k.v}</Text>
-            <Text style={styles.kpiLabel}>{k.k}</Text>
-          </View>
-        ))}
-      </View>
+  const kpis = (
+    <View style={styles.kpiRow}>
+      {data.kpis.map((k) => (
+        <View key={k.k} style={styles.kpiCard}>
+          <Text style={styles.kpiValue}>{k.v}</Text>
+          <Text style={styles.kpiLabel}>{k.k}</Text>
+        </View>
+      ))}
+    </View>
+  );
 
+  const radiusControl = (
+    <View style={desktop ? styles.radiusCard : undefined}>
       <View style={styles.sliderRow}>
         <Text style={styles.sliderLabel}>Radius</Text>
         <Text style={styles.sliderValue}>{radiusKm} km</Text>
       </View>
       <RangeSlider value={radiusKm} minimumValue={1} maximumValue={20} step={1} onValueChange={setRadiusKm} />
+    </View>
+  );
 
-      <LeadsMap leads={data.leads} onOpenLead={selectLead} />
+  // The canvas is schematic, so extra height just gives the pins room to
+  // separate — worth it in a desktop column.
+  const map = <LeadsMap leads={data.leads} onOpenLead={selectLead} height={desktop ? 420 : undefined} />;
 
+  const list = (
+    <View style={styles.listBlock}>
       <Text style={styles.sectionTitle}>{data.leads.length} addresses, nearest first</Text>
       <View style={{ gap: 8 }}>
         {data.leads.map((l) => (
@@ -95,10 +106,47 @@ export function LeadsScreen() {
       </View>
     </View>
   );
+
+  // Desktop puts the map and its radius control on the left and the ranked
+  // addresses on the right, so changing the radius visibly rewrites the list
+  // beside it instead of somewhere below the fold.
+  if (desktop) {
+    return (
+      <View style={[styles.wrap, styles.wrapDesktop, isFetching && { opacity: 0.7 }]}>
+        {location}
+        {kpis}
+        <View style={styles.columns}>
+          <View style={[styles.column, styles.columnWide]}>
+            {radiusControl}
+            {map}
+          </View>
+          <View style={styles.column}>{list}</View>
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View style={[styles.wrap, isFetching && { opacity: 0.7 }]}>
+      {location}
+      {kpis}
+      {radiusControl}
+      {map}
+      {list}
+    </View>
+  );
 }
 
 const useStyles = makeStyles((t) => ({
   wrap: { padding: 17, gap: 13 },
+  wrapDesktop: { padding: 0, gap: 18 },
+  columns: { flexDirection: 'row', alignItems: 'flex-start', gap: 18 },
+  column: { flex: 1, minWidth: 0, gap: 14 },
+  columnWide: { flex: 1.2 },
+  listBlock: { gap: 10 },
+  // On desktop the slider sits in the map column, so it needs a card of its
+  // own to read as a control rather than a stray label.
+  radiusCard: { backgroundColor: t.colors.surfaceMuted, borderRadius: radius.md, paddingHorizontal: 14, paddingTop: 12, paddingBottom: 6 },
   locationRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   locationNote: { flex: 1, fontFamily: fontFamily.body, fontSize: 11, color: t.colors.textMuted },
   locationAction: { fontFamily: fontFamily.bodyBold, fontSize: 11.5, color: t.colors.accent },

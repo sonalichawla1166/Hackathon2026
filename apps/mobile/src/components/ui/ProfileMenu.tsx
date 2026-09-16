@@ -15,6 +15,12 @@ interface ProfileMenuProps {
   onInverse?: boolean;
   /** Extra rows for the surface that owns the menu, e.g. an account number. */
   details?: ReadonlyArray<{ label: string; value: string }>;
+  /**
+   * Whether the menu carries the appearance switch and sign out. The desktop
+   * customer layout turns this off because its sidebar pins both to the
+   * bottom of the navigation column, leaving the menu to say who you are.
+   */
+  showAccountControls?: boolean;
 }
 
 /**
@@ -22,7 +28,7 @@ interface ProfileMenuProps {
  * the appearance switch and sign out — so every surface's header is just a
  * title plus this.
  */
-export function ProfileMenu({ onInverse = false, details = [] }: ProfileMenuProps) {
+export function ProfileMenu({ onInverse = false, details = [], showAccountControls = true }: ProfileMenuProps) {
   const styles = useStyles();
   const { colors } = useTheme();
   const { width } = useWindowDimensions();
@@ -109,27 +115,31 @@ export function ProfileMenu({ onInverse = false, details = [] }: ProfileMenuProp
                 </View>
               ))}
 
-              <View style={styles.divider} />
+              {showAccountControls && (
+                <>
+                  <View style={styles.divider} />
 
-              <View style={styles.appearanceRow}>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.detailLabel}>Appearance</Text>
-                  <Text style={styles.appearanceHint}>Light or dark, remembered on this device.</Text>
-                </View>
-                <ThemeToggle />
-              </View>
+                  <View style={styles.appearanceRow}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.detailLabel}>Appearance</Text>
+                      <Text style={styles.appearanceHint}>Light or dark, remembered on this device.</Text>
+                    </View>
+                    <ThemeToggle />
+                  </View>
 
-              <Pressable
-                onPress={signOut}
-                accessibilityRole="button"
-                style={({ pressed }) => [
-                  styles.signOut,
-                  { borderColor: withAlpha(colors.danger, 0.5), backgroundColor: pressed ? withAlpha(colors.danger, 0.12) : 'transparent' },
-                ]}
-              >
-                <LogoutIcon size={16} color={colors.danger} />
-                <Text style={[styles.signOutLabel, { color: colors.danger }]}>Sign out</Text>
-              </Pressable>
+                  <Pressable
+                    onPress={signOut}
+                    accessibilityRole="button"
+                    style={({ pressed }) => [
+                      styles.signOut,
+                      { borderColor: withAlpha(colors.danger, 0.5), backgroundColor: pressed ? withAlpha(colors.danger, 0.12) : 'transparent' },
+                    ]}
+                  >
+                    <LogoutIcon size={16} color={colors.danger} />
+                    <Text style={[styles.signOutLabel, { color: colors.danger }]}>Sign out</Text>
+                  </Pressable>
+                </>
+              )}
             </ScrollView>
           </Pressable>
         </Pressable>

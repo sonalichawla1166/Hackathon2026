@@ -14,6 +14,7 @@ import { RatePlanCards } from './RatePlanCards';
 import { FaqAccordion } from './FaqAccordion';
 import { AskPanel } from './AskPanel';
 import { OutageMapWidget } from './OutageMapWidget';
+import { hiddenScrollbar } from '@/components/ui/scroll';
 
 /**
  * Public portal surface — a marketing/self-service page at conedison.com,
@@ -39,7 +40,7 @@ function PortalBody() {
   return (
     <View style={styles.shell}>
       <PageWash />
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} {...hiddenScrollbar}>
         <TopNav compact={compact} />
         <Hero compact={compact} />
         <View style={[styles.body, compact ? styles.bodyCompact : styles.bodyWide]}>

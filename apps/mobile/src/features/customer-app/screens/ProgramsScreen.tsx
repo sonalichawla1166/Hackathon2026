@@ -1,13 +1,14 @@
 import React from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { usePrograms, useToggleEnroll } from '@/api/hooks';
-import { makeStyles, useTheme } from '@/theme';
+import { makeStyles, useTheme, useIsDesktop } from '@/theme';
 import { fontFamily } from '@/theme/typography';
 import { LoadingState, ErrorState } from '@/components/ui/AsyncState';
 
 export function ProgramsScreen() {
   const styles = useStyles();
   const { colors } = useTheme();
+  const desktop = useIsDesktop();
   const { data, isPending, isError, error, refetch } = usePrograms();
   const toggleEnroll = useToggleEnroll();
 
@@ -15,47 +16,60 @@ export function ProgramsScreen() {
   if (isError) return <ErrorState error={error} onRetry={refetch} />;
 
   return (
-    <View style={styles.wrap}>
-      <Text style={styles.intro}>{data.intro}</Text>
-      {data.programs.map((p, i) => {
-        const on = p.enrolled;
-        const border = i === 0 ? colors.accent : colors.surfaceMuted;
-        const strongMatch = p.match >= 80;
-        const badgeBg = strongMatch ? colors.cta : colors.accent;
-        const badgeFg = strongMatch ? colors.onCta : colors.onAccent;
-        return (
-          <View key={p.name} style={[styles.card, { borderColor: border }]}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.cardName}>{p.name}</Text>
-              <View style={[styles.badge, { backgroundColor: badgeBg }]}>
-                <Text style={[styles.badgeText, { color: badgeFg }]}>{p.matchLabel}</Text>
+    <View style={[styles.wrap, desktop && styles.wrapDesktop]}>
+      <Text style={[styles.intro, desktop && styles.introDesktop]}>{data.intro}</Text>
+      {/* Desktop lays the recommendations out two to a row so all four can be
+          compared at once — the whole point of a ranked list. */}
+      <View style={desktop ? styles.grid : styles.list}>
+        {data.programs.map((p, i) => {
+          const on = p.enrolled;
+          const border = i === 0 ? colors.accent : colors.surfaceMuted;
+          const strongMatch = p.match >= 80;
+          const badgeBg = strongMatch ? colors.cta : colors.accent;
+          const badgeFg = strongMatch ? colors.onCta : colors.onAccent;
+          return (
+            <View key={p.name} style={[styles.card, desktop && styles.cardGrid, { borderColor: border }]}>
+              <View style={styles.cardHeader}>
+                <Text style={styles.cardName}>{p.name}</Text>
+                <View style={[styles.badge, { backgroundColor: badgeBg }]}>
+                  <Text style={[styles.badgeText, { color: badgeFg }]}>{p.matchLabel}</Text>
+                </View>
+              </View>
+              <Text style={styles.cardWhy}>{p.why}</Text>
+              <View style={styles.cardFooter}>
+                <Text style={styles.cardValue}>{p.value}</Text>
+                <Pressable
+                  onPress={() => toggleEnroll.mutate(i)}
+                  disabled={toggleEnroll.isPending}
+                  style={[
+                    styles.enrolBtn,
+                    on ? { backgroundColor: colors.cta, borderColor: colors.cta } : { backgroundColor: 'transparent', borderColor: colors.primary },
+                  ]}
+                >
+                  <Text style={[styles.enrolText, { color: on ? colors.onCta : colors.textHeading }]}>{on ? 'Enrolled' : 'Enrol'}</Text>
+                </Pressable>
               </View>
             </View>
-            <Text style={styles.cardWhy}>{p.why}</Text>
-            <View style={styles.cardFooter}>
-              <Text style={styles.cardValue}>{p.value}</Text>
-              <Pressable
-                onPress={() => toggleEnroll.mutate(i)}
-                disabled={toggleEnroll.isPending}
-                style={[
-                  styles.enrolBtn,
-                  on ? { backgroundColor: colors.cta, borderColor: colors.cta } : { backgroundColor: 'transparent', borderColor: colors.primary },
-                ]}
-              >
-                <Text style={[styles.enrolText, { color: on ? colors.onCta : colors.textHeading }]}>{on ? 'Enrolled' : 'Enrol'}</Text>
-              </Pressable>
-            </View>
-          </View>
-        );
-      })}
+          );
+        })}
+      </View>
     </View>
   );
 }
 
 const useStyles = makeStyles((t) => ({
   wrap: { padding: 17, gap: 12 },
+  wrapDesktop: { padding: 0, gap: 18 },
+  list: { gap: 12 },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'stretch', gap: 18 },
   intro: { fontFamily: fontFamily.body, fontSize: 12.5, color: t.colors.textMuted, lineHeight: 18 },
+  // Long measure is hard to read; hold the intro to a comfortable line length.
+  introDesktop: { maxWidth: 680 },
   card: { backgroundColor: t.colors.surfaceCard, borderWidth: 2, borderRadius: 5.4, padding: 15 },
+  // Wrapping decides line breaks from the flex *basis*, so a near-half basis
+  // is what pins the grid to two per row; `flexGrow` then closes the gap and
+  // `minWidth` lets them fall to one card if the column ever gets narrow.
+  cardGrid: { flexGrow: 1, flexBasis: '48%', minWidth: 300, padding: 18, justifyContent: 'space-between' },
   cardHeader: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 },
   cardName: { flex: 1, fontFamily: fontFamily.heading, fontSize: 15, color: t.colors.textHeading },
   badge: { borderRadius: 3.2, paddingHorizontal: 8, paddingVertical: 5 },

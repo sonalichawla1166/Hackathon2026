@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Pressable, Text, Platform } from 'react-native';
 import { useUiStore } from '@/state/store';
 import { useDrCohort, useQueueDrEvent } from '@/api/hooks';
@@ -9,6 +9,18 @@ import { Button } from '@/components/ui/Button';
 import { LoadingState, ErrorState } from '@/components/ui/AsyncState';
 
 const monoFamily = Platform.select({ ios: 'Menlo', android: 'monospace', default: 'ui-monospace, Menlo, monospace' });
+
+const CHART_HEIGHT = 156;
+const Y_AXIS_WIDTH = 26;
+/** Gridline positions as a fraction of the peak. */
+const GRID = [0, 0.25, 0.5, 0.75, 1] as const;
+
+/** The curve starts at noon and runs one bar an hour. */
+function hourLabel(i: number): string {
+  const h24 = (12 + i) % 24;
+  const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
+  return `${h12}${h24 >= 12 ? 'pm' : 'am'}`;
+}
 
 export function DemandResponseView({ compact }: { compact: boolean }) {
   const styles = useStyles();
@@ -23,8 +35,22 @@ export function DemandResponseView({ compact }: { compact: boolean }) {
   const { data, isPending, isError, error, refetch } = useDrCohort(drWindow, drPicks);
   const queueEvent = useQueueDrEvent();
 
+  // Which hour the readout describes. Hovering or tapping a bar takes over;
+  // otherwise it rests on the peak, so the chart always states its own story.
+  const [hoveredHour, setHoveredHour] = useState<number | null>(null);
+
   if (isPending) return <LoadingState label="Building cohort…" />;
   if (isError) return <ErrorState error={error} onRetry={refetch} />;
+
+  // `base + cut` is the hour's forecast load on the model's own 0-100 index,
+  // where the day's peak is exactly 100 — so a share of the peak is what these
+  // numbers already are, not a unit invented for the label.
+  const totals = data.curve.map((c) => c.base + c.cut);
+  const peak = Math.max(1, ...totals);
+  const peakHour = totals.indexOf(Math.max(...totals));
+  const readoutHour = hoveredHour ?? peakHour;
+  const readout = data.curve[readoutHour];
+  const share = (v: number) => Math.round((v / peak) * 100);
 
   return (
     <View>
@@ -75,24 +101,91 @@ export function DemandResponseView({ compact }: { compact: boolean }) {
           </View>
 
           <View style={styles.divider}>
-            <Text style={styles.sectionTitle}>Expected load shape</Text>
-            <View style={styles.chart}>
-              {data.curve.map((c, i) => (
-                <View key={i} style={styles.chartCol}>
-                  <View
-                    style={[
-                      styles.chartSeg,
-                      { height: c.cut, backgroundColor: colors.cta, borderTopLeftRadius: 2, borderTopRightRadius: 2 },
-                    ]}
-                  />
-                  <View style={[styles.chartSeg, { height: c.base, backgroundColor: colors.accent }]} />
+            <View style={styles.chartHead}>
+              <Text style={styles.sectionTitle}>Expected load shape</Text>
+              {/* Amber on a white card clears only 1.8:1, so the values are
+                  spelled out here rather than left to the fill alone. */}
+              <View style={styles.readoutRow}>
+                <Text style={styles.readoutHour}>{hourLabel(readoutHour)}</Text>
+                <View style={styles.readoutItem}>
+                  <View style={[styles.legendSwatch, { backgroundColor: colors.accent }]} />
+                  <Text style={styles.readoutLabel}>Load</Text>
+                  <Text style={styles.readoutValue}>{share(readout.base + readout.cut)}%</Text>
                 </View>
-              ))}
+                <View style={styles.readoutItem}>
+                  <View style={[styles.legendSwatch, { backgroundColor: colors.cta }]} />
+                  <Text style={styles.readoutLabel}>Curtailed</Text>
+                  <Text style={styles.readoutValue}>{readout.cut > 0 ? `${share(readout.cut)}%` : '—'}</Text>
+                </View>
+              </View>
             </View>
-            <View style={styles.chartAxis}>
-              <Text style={styles.chartAxisLabel}>12pm</Text>
-              <Text style={styles.chartAxisLabel}>11pm</Text>
+
+            <View style={styles.plotRow}>
+              <View style={styles.yAxis}>
+                {GRID.map((f) => (
+                  <Text key={f} style={[styles.yLabel, { bottom: CHART_HEIGHT * f - 6 }]}>
+                    {Math.round(f * 100)}
+                  </Text>
+                ))}
+              </View>
+
+              <View style={styles.plot}>
+                {GRID.map((f) => (
+                  <View key={f} style={[styles.gridline, { bottom: CHART_HEIGHT * f }]} />
+                ))}
+
+                <View style={styles.chart}>
+                  {data.curve.map((c, i) => {
+                    const inWindow = c.cut > 0;
+                    const isRead = i === readoutHour;
+                    return (
+                      <Pressable
+                        key={i}
+                        style={[styles.chartCol, inWindow && styles.chartColWindow, isRead && styles.chartColRead]}
+                        onHoverIn={() => setHoveredHour(i)}
+                        onHoverOut={() => setHoveredHour(null)}
+                        onPress={() => setHoveredHour((h) => (h === i ? null : i))}
+                        accessibilityRole="button"
+                        accessibilityLabel={`${hourLabel(i)}: ${share(c.base + c.cut)}% of peak load, ${share(c.cut)}% curtailed`}
+                      >
+                        {/* Curtailment rides on top — the slice being shaved
+                            off the peak, rather than a plinth under it. */}
+                        <View style={styles.colStack}>
+                          {c.cut > 0 && (
+                            <View
+                              style={[
+                                styles.chartSeg,
+                                styles.chartSegTop,
+                                { height: (c.cut / peak) * CHART_HEIGHT, backgroundColor: colors.cta },
+                              ]}
+                            />
+                          )}
+                          <View
+                            style={[
+                              styles.chartSeg,
+                              c.cut === 0 && styles.chartSegTop,
+                              { height: (c.base / peak) * CHART_HEIGHT, backgroundColor: colors.accent },
+                            ]}
+                          />
+                        </View>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
             </View>
+
+            <View style={styles.axisRow}>
+              <View style={{ width: Y_AXIS_WIDTH }} />
+              <View style={styles.axisTicks}>
+                {data.curve.map((c, i) => (
+                  <Text key={i} style={styles.chartAxisLabel} numberOfLines={1}>
+                    {i % 3 === 0 || i === data.curve.length - 1 ? hourLabel(i) : ''}
+                  </Text>
+                ))}
+              </View>
+            </View>
+
             <View style={styles.legendRow}>
               <View style={styles.legendItem}>
                 <View style={[styles.legendSwatch, { backgroundColor: colors.accent }]} />
@@ -103,6 +196,10 @@ export function DemandResponseView({ compact }: { compact: boolean }) {
                 <Text style={styles.legendLabel}>Curtailed by cohort</Text>
               </View>
             </View>
+            <Text style={styles.chartCaption}>
+              Share of the day&apos;s peak load. Shaded hours are the selected event window — hover a bar for its
+              numbers.
+            </Text>
           </View>
         </View>
 
@@ -165,11 +262,35 @@ const useStyles = makeStyles((t) => ({
   filterChipText: { fontFamily: fontFamily.body, fontSize: 12.5 },
 
   divider: { borderTopWidth: 2, borderTopColor: t.colors.surfaceMuted, marginTop: 26, paddingTop: 20 },
-  chart: { flexDirection: 'row', alignItems: 'flex-end', gap: 4, height: 120, marginTop: 16 },
-  chartCol: { flex: 1, flexDirection: 'column-reverse', height: '100%', gap: 2 },
+
+  chartHead: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  readoutRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  readoutHour: { fontFamily: fontFamily.heading, fontSize: 13, color: t.colors.textHeading, minWidth: 40 },
+  readoutItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  readoutLabel: { fontFamily: fontFamily.body, fontSize: 11.5, color: t.colors.textMuted },
+  readoutValue: { fontFamily: fontFamily.bodyBold, fontSize: 12.5, color: t.colors.textHeading },
+
+  plotRow: { flexDirection: 'row', marginTop: 16 },
+  yAxis: { width: Y_AXIS_WIDTH, height: CHART_HEIGHT },
+  yLabel: { position: 'absolute', right: 7, fontFamily: fontFamily.body, fontSize: 9.5, color: t.colors.textMuted },
+  plot: { flex: 1, height: CHART_HEIGHT },
+  // Recessive: the grid is a reading aid, never a mark.
+  gridline: { position: 'absolute', left: 0, right: 0, height: 1, backgroundColor: t.colors.borderHairline },
+
+  chart: { flexDirection: 'row', alignItems: 'flex-end', gap: 4, height: CHART_HEIGHT },
+  chartCol: { flex: 1, height: '100%', justifyContent: 'flex-end', borderRadius: 4 },
+  // The event window reads as a band behind its own hours.
+  chartColWindow: { backgroundColor: t.colors.surfaceMuted },
+  chartColRead: { backgroundColor: t.colors.borderHairline },
+  // A 2px surface gap keeps the two stacked fills from bleeding together.
+  colStack: { justifyContent: 'flex-end', gap: 2 },
   chartSeg: { width: '100%' },
-  chartAxis: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 7 },
-  chartAxisLabel: { fontFamily: fontFamily.body, fontSize: 10.5, color: t.colors.textMuted },
+  chartSegTop: { borderTopLeftRadius: 4, borderTopRightRadius: 4 },
+
+  axisRow: { flexDirection: 'row', marginTop: 7 },
+  axisTicks: { flex: 1, flexDirection: 'row', gap: 4 },
+  chartAxisLabel: { flex: 1, textAlign: 'center', fontFamily: fontFamily.body, fontSize: 10, color: t.colors.textMuted },
+  chartCaption: { fontFamily: fontFamily.body, fontSize: 11, color: t.colors.textMuted, marginTop: 9, lineHeight: 16 },
   legendRow: { flexDirection: 'row', gap: 16, marginTop: 12 },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   legendSwatch: { width: 10, height: 10, borderRadius: 2 },

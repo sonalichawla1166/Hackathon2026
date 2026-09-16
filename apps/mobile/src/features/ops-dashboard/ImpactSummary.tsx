@@ -24,7 +24,7 @@ export function ImpactSummary({ compact }: { compact: boolean }) {
         {data.groups.map((g) => (
           <View key={g.title} style={[styles.groupCard, !compact && { flexBasis: '31%' }]}>
             <Text style={styles.groupTitle}>{g.title}</Text>
-            <View style={{ marginTop: 12, gap: 10 }}>
+            <View style={{ marginTop: 12, gap: 12 }}>
               {g.stats.map((s) => (
                 <View key={s.k} style={styles.statRow}>
                   <Text style={styles.statLabel}>{s.k}</Text>
@@ -51,9 +51,12 @@ const useStyles = makeStyles((t) => ({
   groupCard: { backgroundColor: t.colors.surfaceCard, borderRadius: 5.4, padding: 18, ...t.shadow.card },
   groupTitle: { fontFamily: fontFamily.heading, fontSize: 13.5, color: t.colors.textHeading },
 
-  statRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 12, borderTopWidth: 1, borderTopColor: t.colors.surfaceMuted, paddingTop: 8 },
-  statLabel: { fontFamily: fontFamily.body, fontSize: 12, color: t.colors.textMuted, flex: 1 },
-  statValue: { fontFamily: fontFamily.bodyBold, fontSize: 13, color: t.colors.textHeading, textAlign: 'right' },
+  // Label over value, not beside it. Several of these values are sentences
+  // ("$56,213/yr (extrapolated across 120 customers)"), and in a third-width
+  // card a side-by-side row squeezed the label into a five-line ribbon.
+  statRow: { gap: 3, borderTopWidth: 1, borderTopColor: t.colors.surfaceMuted, paddingTop: 9 },
+  statLabel: { fontFamily: fontFamily.body, fontSize: 11.5, color: t.colors.textMuted },
+  statValue: { fontFamily: fontFamily.bodyBold, fontSize: 14, color: t.colors.textHeading, lineHeight: 19 },
 
   note: { fontFamily: fontFamily.body, fontSize: 11, color: t.colors.accent, marginTop: 20, lineHeight: 16, maxWidth: 720 },
 }));

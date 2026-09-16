@@ -10,6 +10,7 @@ import { Eyebrow, BodyText, Caption } from '@/components/ui/Text';
 import { Button } from '@/components/ui/Button';
 import { CitationRow } from '@/components/ui/Citation';
 import { LoadingState, ErrorState } from '@/components/ui/AsyncState';
+import { hiddenScrollbar } from '@/components/ui/scroll';
 
 const COPILOT_PROFILE_DETAILS = [
   { label: 'Queue', value: 'Residential billing' },
@@ -146,20 +147,20 @@ export function AgentCopilot() {
     <View style={styles.fill}>
       <PageWash />
       {compact ? (
-        <ScrollView style={styles.fill} contentContainerStyle={styles.stackContent}>
+        <ScrollView style={styles.fill} contentContainerStyle={styles.stackContent} {...hiddenScrollbar}>
           {left}
           {center}
           {right}
         </ScrollView>
       ) : (
         <View style={styles.wideRow}>
-          <ScrollView style={styles.leftColWide} contentContainerStyle={styles.growContent}>
+          <ScrollView style={styles.leftColWide} contentContainerStyle={styles.growContent} {...hiddenScrollbar}>
             {left}
           </ScrollView>
-          <ScrollView style={styles.centerColWideScroll} contentContainerStyle={styles.growContent}>
+          <ScrollView style={styles.centerColWideScroll} contentContainerStyle={styles.growContent} {...hiddenScrollbar}>
             {center}
           </ScrollView>
-          <ScrollView style={styles.rightColOuter} contentContainerStyle={styles.growContent}>
+          <ScrollView style={styles.rightColOuter} contentContainerStyle={styles.growContent} {...hiddenScrollbar}>
             {right}
           </ScrollView>
         </View>

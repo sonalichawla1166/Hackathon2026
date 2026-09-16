@@ -80,3 +80,14 @@ export function BellIcon({ size = 18, color = 'currentColor' }: IconProps) {
     </Svg>
   );
 }
+
+/** Chevron pointing at a wall — collapses or expands the desktop sidebar.
+ *  `open` draws it pointing left (collapse); otherwise right (expand). */
+export function SidebarToggleIcon({ size = 18, color = 'currentColor', open = true }: IconProps & { open?: boolean }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round">
+      <Path d={open ? 'M13.8 7.4 9.2 12l4.6 4.6' : 'M10.2 7.4 14.8 12l-4.6 4.6'} />
+      <Path d="M18.4 4.6v14.8" />
+    </Svg>
+  );
+}
