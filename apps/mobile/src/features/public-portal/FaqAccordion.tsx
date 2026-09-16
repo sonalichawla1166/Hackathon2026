@@ -16,7 +16,7 @@ export function FaqAccordion() {
   return (
     <View>
       <Text style={styles.heading}>Common Questions</Text>
-      {isPending && <LoadingState label="Loading FAQs…" />}
+      {isPending && <LoadingState label="Loading FAQs…" inline />}
       {isError && <ErrorState error={error} onRetry={refetch} />}
       {data && (
         <View style={styles.list}>

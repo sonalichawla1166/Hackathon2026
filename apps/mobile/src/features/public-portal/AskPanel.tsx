@@ -19,7 +19,7 @@ export function AskPanel() {
         <Text style={styles.headerTitle}>Ask OneGridAI</Text>
       </View>
 
-      {isPending && <LoadingState label="Loading conversation…" />}
+      {isPending && <LoadingState label="Loading conversation…" inline />}
       {isError && <ErrorState error={error} onRetry={refetch} />}
 
       {data && (

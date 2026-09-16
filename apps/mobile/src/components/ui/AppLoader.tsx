@@ -10,8 +10,9 @@ interface AppLoaderProps {
   /** Text under the animation. Pass null for a bare spinner. */
   label?: string | null;
   size?: number;
-  /** Fill the available space and centre, instead of sitting inline. */
-  fullscreen?: boolean;
+  /** Sit inline at its natural height instead of filling and centring. Use
+   *  inside a card or a section; screens want the default. */
+  inline?: boolean;
 }
 
 /**
@@ -21,12 +22,12 @@ interface AppLoaderProps {
  * looks the same. `ActivityIndicator` is the fallback if the Lottie runtime
  * fails to mount (it needs a native module on device and a web player on web).
  */
-export function AppLoader({ label = 'Loading…', size = 120, fullscreen = false }: AppLoaderProps) {
+export function AppLoader({ label = 'Loading…', size = 120, inline = false }: AppLoaderProps) {
   const { colors } = useTheme();
   const [failed, setFailed] = React.useState(false);
 
   return (
-    <View style={[styles.wrap, fullscreen && styles.fullscreen]}>
+    <View style={[styles.wrap, inline ? styles.inline : styles.centred]}>
       {failed ? (
         <ActivityIndicator size="large" color={colors.brand} />
       ) : (
@@ -64,6 +65,9 @@ class LottieErrorBoundary extends React.Component<
 }
 
 const styles = StyleSheet.create({
-  wrap: { alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 24 },
-  fullscreen: { flex: 1, paddingVertical: 0 },
+  wrap: { alignItems: 'center', justifyContent: 'center', gap: 6 },
+  // Fills the screen area the host gives it, so the animation lands in the
+  // middle. `minHeight` keeps it centred even where the parent cannot stretch.
+  centred: { flex: 1, flexGrow: 1, minHeight: 320, paddingVertical: 24 },
+  inline: { paddingVertical: 24 },
 });

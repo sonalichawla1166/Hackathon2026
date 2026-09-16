@@ -16,5 +16,7 @@ export function ScreenTransition({ children, style }: { children: React.ReactNod
     ]).start();
   }, [opacity, translateY]);
 
-  return <Animated.View style={[{ opacity, transform: [{ translateY }] }, style]}>{children}</Animated.View>;
+  // `flexGrow` lets a screen that wants the full height (the loading state)
+  // actually get it; normal content still lays out from the top.
+  return <Animated.View style={[{ flexGrow: 1, opacity, transform: [{ translateY }] }, style]}>{children}</Animated.View>;
 }

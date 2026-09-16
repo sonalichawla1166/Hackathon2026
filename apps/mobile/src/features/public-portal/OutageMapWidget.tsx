@@ -13,7 +13,7 @@ export function OutageMapWidget() {
   return (
     <View style={styles.card}>
       <Text style={styles.title}>Live outage map</Text>
-      {isPending && <LoadingState label="Loading outage map…" />}
+      {isPending && <LoadingState label="Loading outage map…" inline />}
       {isError && <ErrorState error={error} onRetry={refetch} />}
       {data && (
         <>

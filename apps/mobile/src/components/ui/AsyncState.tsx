@@ -27,9 +27,14 @@ const useStyles = makeStyles((t) => ({
   retryText: { fontFamily: fontFamily.bodyBold, fontSize: 12.5, color: t.colors.accent },
 }));
 
-/** Every screen's "waiting on the backend" state — the shared Lottie loader. */
-export function LoadingState({ label = 'Loading…' }: { label?: string }) {
-  return <AppLoader label={label} />;
+/**
+ * Every "waiting on the backend" state — the shared Lottie loader.
+ *
+ * Centres itself in the screen by default. Pass `inline` when it sits inside a
+ * card or a page section, where filling the screen would stretch the card.
+ */
+export function LoadingState({ label = 'Loading…', inline = false }: { label?: string; inline?: boolean }) {
+  return <AppLoader label={label} inline={inline} />;
 }
 
 export function ErrorState({ error, onRetry }: { error: unknown; onRetry?: () => void }) {

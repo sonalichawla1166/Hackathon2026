@@ -101,5 +101,5 @@ const useStyles = makeStyles((t) => ({
   fill: { flex: 1, width: '100%' },
   shell: { flex: 1, backgroundColor: t.colors.page },
   body: { flex: 1, backgroundColor: 'transparent' },
-  bodyContent: { paddingBottom: 8 },
+  bodyContent: { flexGrow: 1, paddingBottom: 8 },
 }));

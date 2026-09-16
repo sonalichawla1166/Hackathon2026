@@ -139,7 +139,7 @@ function RatePlanCardsSection({ compact }: { compact: boolean }) {
   const portalUsage = useUiStore((s) => s.portalUsage);
   const { data, isPending, isError, error, refetch } = usePortalRates(portalUsage);
 
-  if (isPending) return <LoadingState label="Pricing rate plans…" />;
+  if (isPending) return <LoadingState label="Pricing rate plans…" inline />;
   if (isError) return <ErrorState error={error} onRetry={refetch} />;
 
   return <RatePlanCards plans={data.plans} compact={compact} />;
@@ -165,7 +165,7 @@ function SolarCard() {
           </View>
           <RangeSlider value={solarKw} minimumValue={0} maximumValue={12} step={0.5} onValueChange={setSolarKw} />
         </View>
-        {isPending && <LoadingState label="Modelling your roof…" />}
+        {isPending && <LoadingState label="Modelling your roof…" inline />}
         {isError && <ErrorState error={error} onRetry={refetch} />}
         {data &&
           data.stats.map((s) => (

@@ -151,6 +151,6 @@ const useStyles = makeStyles((t) => ({
   footnoteText: { fontFamily: fontFamily.body, fontSize: 11, lineHeight: 16, color: t.colors.textInverseMuted },
 
   content: { flex: 1 },
-  contentInner: { padding: 26, paddingHorizontal: 30, paddingBottom: 34 },
+  contentInner: { flexGrow: 1, padding: 26, paddingHorizontal: 30, paddingBottom: 34 },
   contentInnerCompact: { padding: 16, paddingBottom: 24 },
 }));
