@@ -30,7 +30,8 @@ yarn-error.*
 .DS_Store
 *.pem
 
-# local env files
+# local env files — `.env` holds the Google OAuth client IDs
+.env
 .env*.local
 
 # typescript

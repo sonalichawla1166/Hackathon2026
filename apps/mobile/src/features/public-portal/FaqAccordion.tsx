@@ -1,13 +1,14 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import { useUiStore } from '@/state/store';
 import { usePortalFaqs } from '@/api/hooks';
-import { colors, radius } from '@/theme';
+import { makeStyles, radius } from '@/theme';
 import { fontFamily } from '@/theme/typography';
 import { Citation } from '@/components/ui/Citation';
 import { LoadingState, ErrorState } from '@/components/ui/AsyncState';
 
 export function FaqAccordion() {
+  const styles = useStyles();
   const faqOpen = useUiStore((s) => s.faqOpen);
   const toggleFaq = useUiStore((s) => s.toggleFaq);
   const { data, isPending, isError, error, refetch } = usePortalFaqs();
@@ -44,10 +45,10 @@ export function FaqAccordion() {
   );
 }
 
-const styles = StyleSheet.create({
-  heading: { fontFamily: fontFamily.heading, fontSize: 20, lineHeight: 25, color: colors.textHeading, marginBottom: 14 },
-  list: { gap: 1, backgroundColor: colors.surfaceMuted, borderRadius: radius.md, overflow: 'hidden' },
-  item: { backgroundColor: colors.surfaceCard },
+const useStyles = makeStyles((t) => ({
+  heading: { fontFamily: fontFamily.heading, fontSize: 20, lineHeight: 25, color: t.colors.textHeading, marginBottom: 14 },
+  list: { gap: 1, backgroundColor: t.colors.surfaceMuted, borderRadius: radius.md, overflow: 'hidden' },
+  item: { backgroundColor: t.colors.surfaceCard },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -56,9 +57,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
   },
-  question: { flex: 1, fontFamily: fontFamily.heading, fontSize: 14.5, lineHeight: 19, color: colors.textHeading },
-  chevron: { fontFamily: fontFamily.bodyBold, fontSize: 15, color: colors.accent },
+  question: { flex: 1, fontFamily: fontFamily.heading, fontSize: 14.5, lineHeight: 19, color: t.colors.textHeading },
+  chevron: { fontFamily: fontFamily.bodyBold, fontSize: 15, color: t.colors.accent },
   chevronOpen: { transform: [{ rotate: '90deg' }] },
   answerWrap: { paddingHorizontal: 20, paddingBottom: 18 },
-  answer: { fontFamily: fontFamily.body, fontSize: 13.5, lineHeight: 20, color: colors.textMuted },
-});
+  answer: { fontFamily: fontFamily.body, fontSize: 13.5, lineHeight: 20, color: t.colors.textMuted },
+}));

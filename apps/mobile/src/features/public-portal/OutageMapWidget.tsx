@@ -1,11 +1,13 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 import { useOutageMap } from '@/api/hooks';
-import { colors, radius } from '@/theme';
+import { makeStyles, radius, useTheme } from '@/theme';
 import { fontFamily } from '@/theme/typography';
 import { LoadingState, ErrorState } from '@/components/ui/AsyncState';
 
 export function OutageMapWidget() {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const { data, isPending, isError, error, refetch } = useOutageMap();
 
   return (
@@ -40,15 +42,15 @@ export function OutageMapWidget() {
   );
 }
 
-const styles = StyleSheet.create({
-  card: { backgroundColor: colors.surfaceMuted, borderRadius: radius.md, padding: 18 },
-  title: { fontFamily: fontFamily.heading, fontSize: 14, color: colors.textHeading },
+const useStyles = makeStyles((t) => ({
+  card: { backgroundColor: t.colors.surfaceMuted, borderRadius: radius.md, padding: 18 },
+  title: { fontFamily: fontFamily.heading, fontSize: 14, color: t.colors.textHeading },
   map: {
     height: 130,
     marginTop: 12,
     borderRadius: radius.chip,
-    backgroundColor: colors.primary,
+    backgroundColor: t.colors.primary,
     overflow: 'hidden',
   },
-  caption: { fontFamily: fontFamily.body, fontSize: 12, lineHeight: 17, color: colors.textMuted, marginTop: 10 },
-});
+  caption: { fontFamily: fontFamily.body, fontSize: 12, lineHeight: 17, color: t.colors.textMuted, marginTop: 10 },
+}));

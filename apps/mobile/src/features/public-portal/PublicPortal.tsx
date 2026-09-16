@@ -1,10 +1,11 @@
 import React from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet, useWindowDimensions } from 'react-native';
+import { View, Text, Pressable, ScrollView, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useUiStore } from '@/state/store';
 import { usePortalNav, usePortalRates, usePortalSolar } from '@/api/hooks';
-import { colors, gradients, radius } from '@/theme';
+import { makeStyles, radius, useTheme } from '@/theme';
 import { fontFamily } from '@/theme/typography';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { RangeSlider } from '@/components/ui/RangeSlider';
 import { LoadingState, ErrorState } from '@/components/ui/AsyncState';
 import { RatePlanCards } from './RatePlanCards';
@@ -20,6 +21,7 @@ import { OutageMapWidget } from './OutageMapWidget';
  * OneGridAI" side panel that shares chat state with the customer app.
  */
 export function PublicPortal() {
+  const styles = useStyles();
   return (
     <View style={styles.fill}>
       <PortalBody />
@@ -28,6 +30,7 @@ export function PublicPortal() {
 }
 
 function PortalBody() {
+  const styles = useStyles();
   const { width } = useWindowDimensions();
   const compact = width < 900;
 
@@ -52,6 +55,7 @@ function PortalBody() {
 }
 
 function TopNav({ compact }: { compact: boolean }) {
+  const styles = useStyles();
   const { data } = usePortalNav();
   const logout = useUiStore((s) => s.logout);
 
@@ -71,6 +75,7 @@ function TopNav({ compact }: { compact: boolean }) {
       </View>
       <View style={styles.navRight}>
         {!compact && !!data && <Text style={styles.poweredBy}>{data.poweredBy}</Text>}
+        <ThemeToggle onInverse compact />
         <Pressable onPress={logout} style={styles.logoutBtn}>
           <Text style={styles.logoutLabel}>Log out</Text>
         </Pressable>
@@ -80,6 +85,8 @@ function TopNav({ compact }: { compact: boolean }) {
 }
 
 function Hero({ compact }: { compact: boolean }) {
+  const styles = useStyles();
+  const { gradients } = useTheme();
   return (
     <LinearGradient
       colors={gradients.brand}
@@ -101,6 +108,7 @@ function Hero({ compact }: { compact: boolean }) {
 }
 
 function UsageCard() {
+  const styles = useStyles();
   const portalUsage = useUiStore((s) => s.portalUsage);
   const setPortalUsage = useUiStore((s) => s.setPortalUsage);
   const label = `${portalUsage.toLocaleString('en-US')} kWh`;
@@ -131,6 +139,7 @@ function RatePlanCardsSection({ compact }: { compact: boolean }) {
 }
 
 function SolarCard() {
+  const styles = useStyles();
   const solarKw = useUiStore((s) => s.solarKw);
   const setSolarKw = useUiStore((s) => s.setSolarKw);
   const { data, isPending, isError, error, refetch } = usePortalSolar(solarKw);
@@ -163,13 +172,13 @@ function SolarCard() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((t) => ({
   fill: { flex: 1, width: '100%' },
-  scroll: { flex: 1, width: '100%', backgroundColor: colors.surfaceCard },
+  scroll: { flex: 1, width: '100%', backgroundColor: t.colors.page },
   scrollContent: { flexGrow: 1, paddingBottom: 24 },
 
   nav: {
-    backgroundColor: colors.primary,
+    backgroundColor: t.colors.primary,
     minHeight: 70,
     paddingVertical: 12,
     flexDirection: 'row',
@@ -179,24 +188,24 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   navLeft: { flexDirection: 'row', alignItems: 'center', gap: 34, flexWrap: 'wrap' },
-  wordmark: { fontFamily: fontFamily.heading, fontSize: 19, color: '#fff' },
+  wordmark: { fontFamily: fontFamily.heading, fontSize: 19, color: t.colors.textInverse },
   navItems: { flexDirection: 'row', alignItems: 'center', gap: 20, flexWrap: 'wrap' },
-  navItem: { fontFamily: fontFamily.body, fontSize: 14, color: 'rgba(255,255,255,0.73)' },
+  navItem: { fontFamily: fontFamily.body, fontSize: 14, color: t.colors.textInverseMuted },
   navRight: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-  poweredBy: { fontFamily: fontFamily.body, fontSize: 12, color: 'rgba(255,255,255,0.73)' },
+  poweredBy: { fontFamily: fontFamily.body, fontSize: 12, color: t.colors.textInverseMuted },
   logoutBtn: {
     paddingVertical: 7,
     paddingHorizontal: 12,
     borderRadius: 5,
     borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.35)',
+    borderColor: t.colors.borderInverse,
   },
-  logoutLabel: { fontFamily: fontFamily.bodyBold, fontSize: 12, color: '#fff' },
+  logoutLabel: { fontFamily: fontFamily.bodyBold, fontSize: 12, color: t.colors.textInverse },
 
   hero: {},
   heroInner: { maxWidth: 760 },
-  heroTitle: { fontFamily: fontFamily.heading, color: '#fff' },
-  heroBody: { fontFamily: fontFamily.body, fontSize: 15, lineHeight: 24, color: 'rgba(255,255,255,0.9)', marginTop: 12 },
+  heroTitle: { fontFamily: fontFamily.heading, color: t.colors.textInverse },
+  heroBody: { fontFamily: fontFamily.body, fontSize: 15, lineHeight: 24, color: t.colors.textInverseMutedAlt, marginTop: 12 },
 
   body: { padding: 24, gap: 24 },
   bodyWide: { flexDirection: 'row', alignItems: 'flex-start', paddingHorizontal: 40, paddingTop: 34, paddingBottom: 40 },
@@ -206,22 +215,22 @@ const styles = StyleSheet.create({
   railWide: { width: 330 },
   railCompact: { width: '100%' },
 
-  usageCard: { backgroundColor: colors.surfaceMuted, borderRadius: radius.md, padding: 22 },
+  usageCard: { backgroundColor: t.colors.surfaceMuted, borderRadius: radius.md, padding: 22 },
   usageHeader: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' },
-  usageLabel: { fontFamily: fontFamily.heading, fontSize: 15, color: colors.textHeading },
-  usageValue: { fontFamily: fontFamily.heading, fontSize: 26, color: colors.textHeading },
+  usageLabel: { fontFamily: fontFamily.heading, fontSize: 15, color: t.colors.textHeading },
+  usageValue: { fontFamily: fontFamily.heading, fontSize: 26, color: t.colors.textHeading },
   usageEnds: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 5 },
-  usageEndLabel: { fontFamily: fontFamily.body, fontSize: 11, color: colors.textMuted },
+  usageEndLabel: { fontFamily: fontFamily.body, fontSize: 11, color: t.colors.textMuted },
 
-  solarCard: { backgroundColor: colors.surfaceCard, borderWidth: 2, borderColor: colors.surfaceMuted, borderRadius: radius.md, padding: 22 },
+  solarCard: { backgroundColor: t.colors.surfaceCard, borderWidth: 2, borderColor: t.colors.surfaceMuted, borderRadius: radius.md, padding: 22 },
   solarHeader: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', justifyContent: 'space-between', gap: 16 },
-  solarTitle: { fontFamily: fontFamily.heading, fontSize: 17, color: colors.textHeading },
-  solarNote: { fontFamily: fontFamily.body, fontSize: 12.5, color: colors.accent },
+  solarTitle: { fontFamily: fontFamily.heading, fontSize: 17, color: t.colors.textHeading },
+  solarNote: { fontFamily: fontFamily.body, fontSize: 12.5, color: t.colors.accent },
   solarBody: { flexDirection: 'row', flexWrap: 'wrap', gap: 26, marginTop: 18, alignItems: 'center' },
   solarSlider: { flex: 1, minWidth: 230 },
   solarSliderHeader: { flexDirection: 'row', justifyContent: 'space-between' },
-  solarSliderLabel: { fontFamily: fontFamily.bodyBold, fontSize: 13, color: colors.textHeading },
+  solarSliderLabel: { fontFamily: fontFamily.bodyBold, fontSize: 13, color: t.colors.textHeading },
   stat: {},
-  statLabel: { fontFamily: fontFamily.body, fontSize: 11, color: colors.textMuted },
-  statValue: { fontFamily: fontFamily.heading, fontSize: 21, color: colors.textHeading, marginTop: 4 },
-});
+  statLabel: { fontFamily: fontFamily.body, fontSize: 11, color: t.colors.textMuted },
+  statValue: { fontFamily: fontFamily.heading, fontSize: 21, color: t.colors.textHeading, marginTop: 4 },
+}));

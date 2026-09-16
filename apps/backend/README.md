@@ -47,6 +47,27 @@ python seed.py               # builds utility.db (deterministic, ~1M AMI rows)
 python ingest.py             # embeds the PSEG-LI corpus into chroma_db/
 ```
 
+### If `pip install` fails on `chroma-hnswlib`
+
+On Windows (and any machine without a C++ toolchain) the `chromadb` wheel has
+to be compiled and the install aborts with
+`Microsoft Visual C++ 14.0 or greater is required`. **pip installs nothing when
+that happens**, so the whole list looks broken.
+
+`chromadb` is only used by the RAG document search (`app/real/rag.py`), which
+imports it lazily and falls back to an empty result set. Everything else — the
+API, the database, every screen in the app — runs fine without it. To skip it:
+
+```bash
+grep -v "^chromadb" requirements.txt > requirements.nochroma.txt
+pip install -r requirements.nochroma.txt
+```
+
+Skip `python ingest.py` too — it needs Chroma. To get the document search
+working later, install the
+[Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
+and then `pip install chromadb`.
+
 `/chat` works even without `ANTHROPIC_API_KEY` — it falls back to
 retrieval-only (a real citation + passage, no LLM narration).
 

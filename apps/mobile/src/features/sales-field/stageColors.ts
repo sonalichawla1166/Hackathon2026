@@ -1,6 +1,11 @@
-import { colors } from '@/theme';
+import { ThemeColors } from '@/theme';
 
-export function stageColor(stage: string): string {
+/**
+ * Colour for a pipeline stage. Takes the active palette rather than reading a
+ * module-level one, so the same stage stays legible in light and dark mode
+ * (see `outcomeColors.ts`, which works the same way).
+ */
+export function stageColor(stage: string, colors: ThemeColors): string {
   switch (stage) {
     case 'New':
       return colors.textMuted;
@@ -13,7 +18,7 @@ export function stageColor(stage: string): string {
     case 'Negotiating':
       return colors.primary;
     case 'Won':
-      return colors.cta;
+      return colors.brandInk;
     case 'Lost':
       return colors.danger;
     default:

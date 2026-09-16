@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, StyleSheet, ViewStyle, StyleProp } from 'react-native';
-import { colors, radius, shadow, spacing } from '@/theme';
+import { View, ViewStyle, StyleProp } from 'react-native';
+import { radius, spacing, useTheme } from '@/theme';
 
 interface CardProps {
   children: React.ReactNode;
@@ -13,16 +13,21 @@ interface CardProps {
 }
 
 export function Card({ children, style, inverse, muted, bordered, borderColor, padding = spacing.md }: CardProps) {
+  const { colors, shadow } = useTheme();
+
+  const fill: ViewStyle = inverse
+    ? { backgroundColor: colors.surfaceInverse }
+    : muted
+      ? { backgroundColor: colors.surfaceMuted }
+      : { backgroundColor: colors.surfaceCard, ...shadow.card };
+
   return (
     <View
       style={[
-        styles.base,
-        { padding },
-        inverse
-          ? { backgroundColor: colors.surfaceInverse }
-          : muted
-            ? { backgroundColor: colors.surfaceMuted }
-            : { backgroundColor: colors.surfaceCard, ...shadow.card },
+        // A hairline edge so a card still reads as a card on the page wash,
+        // the way the sign-in card does. `bordered` overrides it.
+        { borderRadius: radius.md, padding, borderWidth: 1, borderColor: colors.borderHairline },
+        fill,
         bordered && { borderWidth: 1.5, borderColor: borderColor ?? colors.borderHairline },
         style,
       ]}
@@ -31,9 +36,3 @@ export function Card({ children, style, inverse, muted, bordered, borderColor, p
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  base: {
-    borderRadius: radius.md,
-  },
-});

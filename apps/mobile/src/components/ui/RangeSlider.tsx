@@ -1,7 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 import Slider from '@react-native-community/slider';
-import { colors } from '@/theme';
+import { useTheme } from '@/theme';
 
 interface RangeSliderProps {
   value: number;
@@ -12,6 +12,7 @@ interface RangeSliderProps {
 }
 
 export function RangeSlider({ value, minimumValue, maximumValue, step, onValueChange }: RangeSliderProps) {
+  const { colors } = useTheme();
   return (
     <View>
       <Slider
@@ -21,7 +22,7 @@ export function RangeSlider({ value, minimumValue, maximumValue, step, onValueCh
         step={step}
         onValueChange={onValueChange}
         minimumTrackTintColor={colors.cta}
-        maximumTrackTintColor={colors.surfaceMuted}
+        maximumTrackTintColor={colors.borderMuted}
         thumbTintColor={colors.cta}
       />
     </View>

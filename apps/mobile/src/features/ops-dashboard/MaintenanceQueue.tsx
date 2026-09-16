@@ -1,13 +1,15 @@
 import React from 'react';
-import { View, Pressable, Text, StyleSheet } from 'react-native';
+import { View, Pressable, Text } from 'react-native';
 import { useUiStore } from '@/state/store';
 import { useDispatchAsset, useOpsAssets } from '@/api/hooks';
-import { colors, shadow } from '@/theme';
+import { makeStyles, useTheme } from '@/theme';
 import { fontFamily } from '@/theme/typography';
 import { Button } from '@/components/ui/Button';
 import { LoadingState, ErrorState } from '@/components/ui/AsyncState';
 
 export function MaintenanceQueue({ compact }: { compact: boolean }) {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const selectedAssetId = useUiStore((s) => s.selectedAssetId);
   const selectAsset = useUiStore((s) => s.selectAsset);
   const { data, isPending, isError, error, refetch } = useOpsAssets();
@@ -17,7 +19,19 @@ export function MaintenanceQueue({ compact }: { compact: boolean }) {
   if (isError) return <ErrorState error={error} onRetry={refetch} />;
 
   const { kpis, columns, assets } = data;
-  const selectedId = selectedAssetId ?? assets[0]?.id;
+
+  // The backend returns an empty list until `seed.py` has been run, and every
+  // row below reads `sel.*` — so say so plainly instead of crashing on it.
+  if (assets.length === 0) {
+    return (
+      <EmptyQueue
+        title="No assets in the queue"
+        body="The maintenance database has no rows yet. Run `python seed.py` in apps/backend, then reload."
+      />
+    );
+  }
+
+  const selectedId = selectedAssetId ?? assets[0].id;
   const sel = assets.find((a) => a.id === selectedId) ?? assets[0];
 
   return (
@@ -129,51 +143,73 @@ function colWidth(i: number) {
   return { flex: flexes[i] };
 }
 
-const styles = StyleSheet.create({
+function EmptyQueue({ title, body }: { title: string; body: string }) {
+  const styles = useStyles();
+  return (
+    <View style={styles.emptyCard}>
+      <Text style={styles.emptyTitle}>{title}</Text>
+      <Text style={styles.emptyBody}>{body}</Text>
+    </View>
+  );
+}
+
+const useStyles = makeStyles((t) => ({
+  emptyCard: {
+    backgroundColor: t.colors.surfaceCard,
+    borderWidth: 1,
+    borderColor: t.colors.borderHairline,
+    borderRadius: 5.4,
+    padding: 24,
+    margin: 4,
+    gap: 8,
+    alignItems: 'center',
+  },
+  emptyTitle: { fontFamily: fontFamily.heading, fontSize: 15, color: t.colors.textHeading, textAlign: 'center' },
+  emptyBody: { fontFamily: fontFamily.body, fontSize: 12.5, color: t.colors.textMuted, textAlign: 'center', lineHeight: 18 },
   header: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-end', justifyContent: 'space-between', gap: 18 },
   headerCompact: { alignItems: 'flex-start' },
-  title: { fontFamily: fontFamily.heading, fontSize: 24, color: colors.textHeading },
-  subtitle: { fontFamily: fontFamily.body, fontSize: 13, color: colors.textMuted, marginTop: 7, lineHeight: 19 },
+  title: { fontFamily: fontFamily.heading, fontSize: 24, color: t.colors.textHeading },
+  subtitle: { fontFamily: fontFamily.body, fontSize: 13, color: t.colors.textMuted, marginTop: 7, lineHeight: 19 },
   kpiRow: { flexDirection: 'row', gap: 22 },
   kpiRowCompact: { flexWrap: 'wrap', gap: 18 },
-  kpiLabel: { fontFamily: fontFamily.body, fontSize: 11, color: colors.textMuted },
-  kpiValue: { fontFamily: fontFamily.heading, fontSize: 21, color: colors.textHeading, marginTop: 3 },
+  kpiLabel: { fontFamily: fontFamily.body, fontSize: 11, color: t.colors.textMuted },
+  kpiValue: { fontFamily: fontFamily.heading, fontSize: 21, color: t.colors.textHeading, marginTop: 3 },
 
   layout: { flexDirection: 'row', gap: 24, marginTop: 22, alignItems: 'flex-start' },
   layoutCompact: { flexDirection: 'column' },
 
-  tableCard: { backgroundColor: colors.surfaceCard, borderRadius: 5.4, overflow: 'hidden', ...shadow.card },
-  tableHeadRow: { flexDirection: 'row', gap: 12, paddingVertical: 13, paddingHorizontal: 18, backgroundColor: colors.primary },
-  tableHeadCell: { fontFamily: fontFamily.bodyBlack, fontSize: 9.5, letterSpacing: 1.2, textTransform: 'uppercase', color: 'rgba(255,255,255,0.73)' },
-  row: { flexDirection: 'row', gap: 12, paddingVertical: 14, paddingHorizontal: 18, borderTopWidth: 1, borderTopColor: colors.surfaceMuted, alignItems: 'center' },
-  assetId: { fontFamily: fontFamily.heading, fontSize: 13.5, color: colors.textHeading },
-  assetType: { fontFamily: fontFamily.body, fontSize: 11.5, color: colors.textMuted, marginTop: 2 },
-  cellText: { fontFamily: fontFamily.body, fontSize: 12.5, color: colors.textMuted },
+  tableCard: { backgroundColor: t.colors.surfaceCard, borderRadius: 5.4, overflow: 'hidden', ...t.shadow.card },
+  tableHeadRow: { flexDirection: 'row', gap: 12, paddingVertical: 13, paddingHorizontal: 18, backgroundColor: t.colors.primary },
+  tableHeadCell: { fontFamily: fontFamily.bodyBlack, fontSize: 9.5, letterSpacing: 1.2, textTransform: 'uppercase', color: t.colors.textInverseMuted },
+  row: { flexDirection: 'row', gap: 12, paddingVertical: 14, paddingHorizontal: 18, borderTopWidth: 1, borderTopColor: t.colors.surfaceMuted, alignItems: 'center' },
+  assetId: { fontFamily: fontFamily.heading, fontSize: 13.5, color: t.colors.textHeading },
+  assetType: { fontFamily: fontFamily.body, fontSize: 11.5, color: t.colors.textMuted, marginTop: 2 },
+  cellText: { fontFamily: fontFamily.body, fontSize: 12.5, color: t.colors.textMuted },
   riskCell: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  riskTrack: { flex: 1, height: 6, borderRadius: 3, backgroundColor: colors.surfaceMuted, overflow: 'hidden' },
+  riskTrack: { flex: 1, height: 6, borderRadius: 3, backgroundColor: t.colors.surfaceMuted, overflow: 'hidden' },
   riskFill: { height: '100%' },
-  riskLabel: { fontFamily: fontFamily.bodyBold, fontSize: 12.5, color: colors.textHeading, width: 34, textAlign: 'right' },
+  riskLabel: { fontFamily: fontFamily.bodyBold, fontSize: 12.5, color: t.colors.textHeading, width: 34, textAlign: 'right' },
 
-  detailCard: { backgroundColor: colors.surfaceCard, borderRadius: 5.4, padding: 22, ...shadow.card },
-  eyebrow: { fontFamily: fontFamily.bodyBlack, fontSize: 9.5, letterSpacing: 1.4, textTransform: 'uppercase', color: colors.accent },
-  selId: { fontFamily: fontFamily.heading, fontSize: 21, color: colors.textHeading, marginTop: 9, marginBottom: 3 },
-  selMeta: { fontFamily: fontFamily.body, fontSize: 12.5, color: colors.textMuted, lineHeight: 18 },
+  detailCard: { backgroundColor: t.colors.surfaceCard, borderRadius: 5.4, padding: 22, ...t.shadow.card },
+  eyebrow: { fontFamily: fontFamily.bodyBlack, fontSize: 9.5, letterSpacing: 1.4, textTransform: 'uppercase', color: t.colors.accent },
+  selId: { fontFamily: fontFamily.heading, fontSize: 21, color: t.colors.textHeading, marginTop: 9, marginBottom: 3 },
+  selMeta: { fontFamily: fontFamily.body, fontSize: 12.5, color: t.colors.textMuted, lineHeight: 18 },
 
-  riskBox: { backgroundColor: colors.primary, borderRadius: 5.4, padding: 16, marginTop: 16 },
-  riskBoxLabel: { fontFamily: fontFamily.body, fontSize: 11, color: 'rgba(255,255,255,0.73)' },
-  riskBoxValue: { fontFamily: fontFamily.heading, fontSize: 34, color: '#fff', marginTop: 4 },
-  riskBoxSub: { fontFamily: fontFamily.body, fontSize: 11.5, color: 'rgba(255,255,255,0.73)', marginTop: 6, lineHeight: 16 },
+  riskBox: { backgroundColor: t.colors.primary, borderRadius: 5.4, padding: 16, marginTop: 16 },
+  riskBoxLabel: { fontFamily: fontFamily.body, fontSize: 11, color: t.colors.textInverseMuted },
+  riskBoxValue: { fontFamily: fontFamily.heading, fontSize: 34, color: t.colors.textInverse, marginTop: 4 },
+  riskBoxSub: { fontFamily: fontFamily.body, fontSize: 11.5, color: t.colors.textInverseMuted, marginTop: 6, lineHeight: 16 },
 
-  driversTitle: { fontFamily: fontFamily.heading, fontSize: 13, color: colors.textHeading, marginTop: 18, marginBottom: 10 },
+  driversTitle: { fontFamily: fontFamily.heading, fontSize: 13, color: t.colors.textHeading, marginTop: 18, marginBottom: 10 },
   driverRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 10 },
-  driverLabel: { fontFamily: fontFamily.body, fontSize: 12.5, color: colors.textMuted },
-  driverValue: { fontFamily: fontFamily.bodyBold, fontSize: 12, color: colors.textHeading },
-  driverTrack: { height: 5, borderRadius: 3, backgroundColor: colors.surfaceMuted, marginTop: 5, overflow: 'hidden' },
-  driverFill: { height: '100%', backgroundColor: colors.accent },
+  driverLabel: { fontFamily: fontFamily.body, fontSize: 12.5, color: t.colors.textMuted },
+  driverValue: { fontFamily: fontFamily.bodyBold, fontSize: 12, color: t.colors.textHeading },
+  driverTrack: { height: 5, borderRadius: 3, backgroundColor: t.colors.surfaceMuted, marginTop: 5, overflow: 'hidden' },
+  driverFill: { height: '100%', backgroundColor: t.colors.accent },
 
-  actionBox: { backgroundColor: colors.surfaceMuted, borderRadius: 5.4, padding: 15, marginTop: 18 },
-  actionTitle: { fontFamily: fontFamily.heading, fontSize: 12.5, color: colors.textHeading },
-  actionBody: { fontFamily: fontFamily.body, fontSize: 12.5, color: colors.textMuted, marginTop: 5, lineHeight: 18 },
+  actionBox: { backgroundColor: t.colors.surfaceMuted, borderRadius: 5.4, padding: 15, marginTop: 18 },
+  actionTitle: { fontFamily: fontFamily.heading, fontSize: 12.5, color: t.colors.textHeading },
+  actionBody: { fontFamily: fontFamily.body, fontSize: 12.5, color: t.colors.textMuted, marginTop: 5, lineHeight: 18 },
 
   btnRow: { flexDirection: 'row', gap: 8, marginTop: 16 },
-});
+}));

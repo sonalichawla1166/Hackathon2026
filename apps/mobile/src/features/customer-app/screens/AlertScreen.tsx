@@ -1,13 +1,15 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 import { useUiStore } from '@/state/store';
 import { useAckAnomaly, useAnomalies, useDismissAnomaly } from '@/api/hooks';
-import { colors } from '@/theme';
+import { makeStyles, useTheme } from '@/theme';
 import { fontFamily } from '@/theme/typography';
 import { Button } from '@/components/ui/Button';
 import { LoadingState, ErrorState } from '@/components/ui/AsyncState';
 
 export function AlertScreen() {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const setScreen = useUiStore((s) => s.setScreen);
   const { data, isPending, isError, error, refetch } = useAnomalies();
   const ack = useAckAnomaly();
@@ -72,24 +74,24 @@ export function AlertScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((t) => ({
   wrap: { padding: 17, gap: 15 },
-  headline: { backgroundColor: colors.primary, borderRadius: 5.4, padding: 16 },
-  eyebrow: { fontFamily: fontFamily.bodyBlack, fontSize: 9, letterSpacing: 1.35, textTransform: 'uppercase', color: colors.danger },
-  title: { fontFamily: fontFamily.heading, fontSize: 18, color: '#fff', marginTop: 8, lineHeight: 24 },
-  body: { fontFamily: fontFamily.body, fontSize: 12.5, color: 'rgba(255,255,255,0.73)', marginTop: 7, lineHeight: 18 },
-  chartCard: { backgroundColor: colors.surfaceCard, borderWidth: 2, borderColor: colors.surfaceMuted, borderRadius: 5.4, padding: 15 },
-  chartTitle: { fontFamily: fontFamily.heading, fontSize: 12.5, color: colors.textHeading },
+  headline: { backgroundColor: t.colors.primary, borderRadius: 5.4, padding: 16 },
+  eyebrow: { fontFamily: fontFamily.bodyBlack, fontSize: 9, letterSpacing: 1.35, textTransform: 'uppercase', color: t.colors.danger },
+  title: { fontFamily: fontFamily.heading, fontSize: 18, color: t.colors.textInverse, marginTop: 8, lineHeight: 24 },
+  body: { fontFamily: fontFamily.body, fontSize: 12.5, color: t.colors.textInverseMuted, marginTop: 7, lineHeight: 18 },
+  chartCard: { backgroundColor: t.colors.surfaceCard, borderWidth: 2, borderColor: t.colors.surfaceMuted, borderRadius: 5.4, padding: 15 },
+  chartTitle: { fontFamily: fontFamily.heading, fontSize: 12.5, color: t.colors.textHeading },
   chart: { flexDirection: 'row', alignItems: 'flex-end', gap: 3, height: 88, marginTop: 14 },
   bar: { flex: 1, borderRadius: 1 },
   chartEnds: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 },
-  chartEndLabel: { fontFamily: fontFamily.body, fontSize: 10, color: colors.textMuted },
+  chartEndLabel: { fontFamily: fontFamily.body, fontSize: 10, color: t.colors.textMuted },
   legendRow: { flexDirection: 'row', gap: 14, marginTop: 11 },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   legendDot: { width: 9, height: 9, borderRadius: 2 },
-  legendLabel: { fontFamily: fontFamily.body, fontSize: 10.5, color: colors.textMuted },
-  impactCard: { backgroundColor: colors.surfaceMuted, borderRadius: 5.4, padding: 15 },
-  impactTitle: { fontFamily: fontFamily.heading, fontSize: 13, color: colors.textHeading },
-  impactBody: { fontFamily: fontFamily.body, fontSize: 12.5, color: colors.textMuted, marginTop: 5, lineHeight: 18 },
-  ackNote: { fontFamily: fontFamily.body, fontSize: 12, color: colors.cta, lineHeight: 17 },
-});
+  legendLabel: { fontFamily: fontFamily.body, fontSize: 10.5, color: t.colors.textMuted },
+  impactCard: { backgroundColor: t.colors.surfaceMuted, borderRadius: 5.4, padding: 15 },
+  impactTitle: { fontFamily: fontFamily.heading, fontSize: 13, color: t.colors.textHeading },
+  impactBody: { fontFamily: fontFamily.body, fontSize: 12.5, color: t.colors.textMuted, marginTop: 5, lineHeight: 18 },
+  ackNote: { fontFamily: fontFamily.body, fontSize: 12, color: t.colors.brandInk, lineHeight: 17 },
+}));

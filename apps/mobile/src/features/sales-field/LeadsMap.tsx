@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
+import { Animated, Pressable, ScrollView, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
 import type { SalesLead } from '@/api/types';
-import { colors, gradients, radius, shadow } from '@/theme';
+import { makeStyles, radius, useTheme } from '@/theme';
 import { fontFamily } from '@/theme/typography';
 import { Badge } from '@/components/ui/Badge';
 import { outcomeColor } from './outcomeColors';
@@ -18,6 +18,8 @@ const ZOOM_STEP = 0.5;
 // dots, but now with tappable pin markers, a zoom/pan canvas, and a
 // bottom-docked callout instead of a plain read-only dot field.
 export function LeadsMap({ leads, onOpenLead }: { leads: SalesLead[]; onOpenLead: (id: string) => void }) {
+  const styles = useStyles();
+  const { colors, gradients } = useTheme();
   const [zoom, setZoom] = useState(1);
   const [width, setWidth] = useState(0);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -76,7 +78,7 @@ export function LeadsMap({ leads, onOpenLead }: { leads: SalesLead[]; onOpenLead
             </Text>
             {active.lastOutcome && (
               <View style={{ marginTop: 6 }}>
-                <Badge label={active.knockedToday ? `Today: ${active.lastOutcome}` : `Last: ${active.lastOutcome}`} bg={outcomeColor(active.lastOutcome)} />
+                <Badge label={active.knockedToday ? `Today: ${active.lastOutcome}` : `Last: ${active.lastOutcome}`} bg={outcomeColor(active.lastOutcome, colors)} />
               </View>
             )}
           </View>
@@ -95,6 +97,7 @@ export function LeadsMap({ leads, onOpenLead }: { leads: SalesLead[]; onOpenLead
 }
 
 function ToolbarBtn({ label, onPress, disabled }: { label: string; onPress: () => void; disabled?: boolean }) {
+  const styles = useStyles();
   return (
     <Pressable onPress={onPress} disabled={disabled} style={[styles.toolbarBtn, disabled && { opacity: 0.35 }]}>
       <Text style={styles.toolbarBtnLabel}>{label}</Text>
@@ -103,7 +106,8 @@ function ToolbarBtn({ label, onPress, disabled }: { label: string; onPress: () =
 }
 
 function Pin({ lead, active, onPress }: { lead: SalesLead; active: boolean; onPress: () => void }) {
-  const dotColor = lead.knockedToday ? outcomeColor(lead.lastOutcome) : colors.accent;
+  const { colors } = useTheme();
+  const dotColor = lead.knockedToday ? outcomeColor(lead.lastOutcome, colors) : colors.accent;
   const size = active ? 30 : 22;
   const h = size * (32 / 24);
   return (
@@ -125,16 +129,17 @@ function Pin({ lead, active, onPress }: { lead: SalesLead; active: boolean; onPr
         <Path
           d="M12,0C5.4,0,0,5.4,0,12c0,9,12,20,12,20s12-11,12-20C24,5.4,18.6,0,12,0z"
           fill={dotColor}
-          stroke="#fff"
+          stroke={colors.inverseSolid}
           strokeWidth={active ? 1.5 : 1}
         />
-        <Path d="M12,7.5c-2.5,0-4.5,2-4.5,4.5s4.5,8,4.5,8s4.5-5.5,4.5-8S14.5,7.5,12,7.5z" fill="#fff" opacity={0.9} />
+        <Path d="M12,7.5c-2.5,0-4.5,2-4.5,4.5s4.5,8,4.5,8s4.5-5.5,4.5-8S14.5,7.5,12,7.5z" fill={colors.inverseSolid} opacity={0.9} />
       </Svg>
     </Pressable>
   );
 }
 
 function RepMarker() {
+  const styles = useStyles();
   const pulse = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -161,12 +166,12 @@ function RepMarker() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((t) => ({
   wrap: { gap: 8 },
   viewport: {
     height: VIEWPORT_HEIGHT,
     borderRadius: radius.chip,
-    backgroundColor: colors.primary,
+    backgroundColor: t.colors.primary,
     overflow: 'hidden',
   },
   canvas: {},
@@ -178,7 +183,7 @@ const styles = StyleSheet.create({
     bottom: '8%',
     borderRadius: 999,
     borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.3)',
+    borderColor: t.colors.borderInverse,
     borderStyle: 'dashed',
   },
   toolbar: { position: 'absolute', right: 10, bottom: 10, gap: 6 },
@@ -186,36 +191,36 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: 'rgba(255,255,255,0.18)',
+    backgroundColor: t.colors.inverseFillMedium,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  toolbarBtnLabel: { fontFamily: fontFamily.bodyBold, fontSize: 15, color: '#fff' },
+  toolbarBtnLabel: { fontFamily: fontFamily.bodyBold, fontSize: 15, color: t.colors.textInverse },
   repWrap: { position: 'absolute', left: '50%', top: '50%', width: 0, height: 0, alignItems: 'center', justifyContent: 'center' },
-  repPulse: { position: 'absolute', width: 16, height: 16, marginLeft: -8, marginTop: -8, borderRadius: 8, backgroundColor: '#fff' },
+  repPulse: { position: 'absolute', width: 16, height: 16, marginLeft: -8, marginTop: -8, borderRadius: 8, backgroundColor: t.colors.inverseSolid },
   repDot: {
     width: 16,
     height: 16,
     marginLeft: -8,
     marginTop: -8,
     borderRadius: 8,
-    backgroundColor: 'rgba(255,255,255,0.3)',
+    backgroundColor: t.colors.inverseFillStrong,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  repDotCore: { width: 7, height: 7, borderRadius: 3.5, backgroundColor: '#fff' },
+  repDotCore: { width: 7, height: 7, borderRadius: 3.5, backgroundColor: t.colors.inverseSolid },
   callout: {
     flexDirection: 'row',
     gap: 10,
-    backgroundColor: colors.surfaceCard,
+    backgroundColor: t.colors.surfaceCard,
     borderRadius: radius.md,
     padding: 13,
-    ...shadow.lifted,
+    ...t.shadow.lifted,
   },
   calloutTop: { flexDirection: 'row', justifyContent: 'space-between', gap: 8 },
-  calloutAddress: { flex: 1, fontFamily: fontFamily.heading, fontSize: 13.5, color: colors.textHeading },
-  calloutDistance: { fontFamily: fontFamily.bodyBold, fontSize: 12, color: colors.accent },
-  calloutCustomer: { fontFamily: fontFamily.body, fontSize: 12, color: colors.textMuted, marginTop: 3 },
-  calloutClose: { fontFamily: fontFamily.bodyBold, fontSize: 13, color: colors.textMuted },
-  calloutView: { fontFamily: fontFamily.bodyBold, fontSize: 12.5, color: colors.accent },
-});
+  calloutAddress: { flex: 1, fontFamily: fontFamily.heading, fontSize: 13.5, color: t.colors.textHeading },
+  calloutDistance: { fontFamily: fontFamily.bodyBold, fontSize: 12, color: t.colors.accent },
+  calloutCustomer: { fontFamily: fontFamily.body, fontSize: 12, color: t.colors.textMuted, marginTop: 3 },
+  calloutClose: { fontFamily: fontFamily.bodyBold, fontSize: 13, color: t.colors.textMuted },
+  calloutView: { fontFamily: fontFamily.bodyBold, fontSize: 12.5, color: t.colors.accent },
+}));

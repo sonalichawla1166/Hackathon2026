@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
-import { Animated, Pressable, Text, View, StyleSheet, ViewStyle, StyleProp } from 'react-native';
+import { Animated, Pressable, Text, StyleSheet, ViewStyle, StyleProp } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { colors, gradients, radius, shadow } from '@/theme';
+import { radius, useTheme } from '@/theme';
 import { fontFamily } from '@/theme/typography';
 
 export type ButtonVariant = 'primary' | 'cta' | 'outlineDark';
@@ -22,10 +22,12 @@ interface ButtonProps {
   style?: StyleProp<ViewStyle>;
 }
 
-// cta and primary render as a gradient fill with a soft colored glow behind
-// them — the "vivid accent on near-black" signature of the redesign — and
-// every variant scales down slightly on press for tactile feedback.
+// `cta` and `primary` render as a gradient fill with a soft coloured glow
+// behind them; every variant scales down slightly on press for tactile
+// feedback. `cta` is CG Infinity amber in both themes, so its label uses the
+// palette's `onCta` ink rather than white — amber-on-white fails contrast.
 export function Button({ children, variant = 'cta', size = 'md', block = false, disabled = false, onPress, style }: ButtonProps) {
+  const { colors, gradients, shadow } = useTheme();
   const scale = useRef(new Animated.Value(1)).current;
   const s = SIZES[size];
 
@@ -51,7 +53,8 @@ export function Button({ children, variant = 'cta', size = 'md', block = false, 
           onPress={onPress}
           onPressIn={pressIn}
           onPressOut={pressOut}
-          style={[styles.base, sizeStyle, styles.outline, { width: block ? '100%' : undefined }]}
+          accessibilityRole="button"
+          style={[styles.base, sizeStyle, styles.outline, { borderColor: colors.borderMuted, width: block ? '100%' : undefined }]}
         >
           <Text style={[styles.label, { fontSize: s.fontSize, color: colors.textHeading }]} numberOfLines={1}>
             {children}
@@ -61,14 +64,23 @@ export function Button({ children, variant = 'cta', size = 'md', block = false, 
     );
   }
 
-  const grad = variant === 'cta' ? gradients.cta : gradients.brand;
-  const glowColor = variant === 'cta' ? colors.cta : colors.primary;
+  const isCta = variant === 'cta';
+  const grad = isCta ? gradients.cta : gradients.control;
+  const glowColor = isCta ? colors.cta : colors.primary;
+  const labelColor = isCta ? colors.onCta : colors.textInverse;
 
   return (
     <Animated.View style={[wrapStyle, !disabled && shadow.glow(glowColor)]}>
-      <Pressable disabled={disabled} onPress={onPress} onPressIn={pressIn} onPressOut={pressOut} style={{ width: block ? '100%' : undefined }}>
+      <Pressable
+        disabled={disabled}
+        onPress={onPress}
+        onPressIn={pressIn}
+        onPressOut={pressOut}
+        accessibilityRole="button"
+        style={{ width: block ? '100%' : undefined }}
+      >
         <LinearGradient colors={grad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[styles.base, sizeStyle]}>
-          <Text style={[styles.label, { fontSize: s.fontSize, color: '#fff' }]} numberOfLines={1}>
+          <Text style={[styles.label, { fontSize: s.fontSize, color: labelColor }]} numberOfLines={1}>
             {children}
           </Text>
         </LinearGradient>
@@ -86,7 +98,6 @@ const styles = StyleSheet.create({
   },
   outline: {
     borderWidth: 2,
-    borderColor: colors.borderMuted,
     backgroundColor: 'transparent',
   },
   label: { fontFamily: fontFamily.bodyBold, letterSpacing: 0.2 },

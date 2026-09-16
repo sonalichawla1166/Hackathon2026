@@ -1,16 +1,19 @@
 import React from 'react';
-import { View, ScrollView, StyleSheet, useWindowDimensions } from 'react-native';
+import { View, ScrollView, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useCopilotCall, useAdvanceCall, useUseSuggestion } from '@/api/hooks';
 import { useUiStore } from '@/state/store';
-import { colors, gradients, radius, shadow } from '@/theme';
+import { makeStyles, radius, useTheme } from '@/theme';
 import { fontFamily } from '@/theme/typography';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { Eyebrow, BodyText, Caption } from '@/components/ui/Text';
 import { Button } from '@/components/ui/Button';
 import { CitationRow } from '@/components/ui/Citation';
 import { LoadingState, ErrorState } from '@/components/ui/AsyncState';
 
 export function AgentCopilot() {
+  const styles = useStyles();
+  const { colors, gradients } = useTheme();
   const { width } = useWindowDimensions();
   const compact = width < 900;
   const logout = useUiStore((s) => s.logout);
@@ -32,7 +35,7 @@ export function AgentCopilot() {
       style={[styles.leftCol, compact && styles.leftColCompact]}
     >
       <Eyebrow color={colors.textInverseMuted}>{'Live call · ' + callTimer}</Eyebrow>
-      <BodyText color="#fff" style={styles.name}>{customer.name}</BodyText>
+      <BodyText color={colors.textInverse} style={styles.name}>{customer.name}</BodyText>
       <BodyText color={colors.textInverseMuted} style={styles.acctInfo}>
         {customer.account}{'\n'}{customer.address}
       </BodyText>
@@ -40,12 +43,12 @@ export function AgentCopilot() {
         {facts.map((f, i) => (
           <View key={i} style={styles.factRow}>
             <BodyText color={colors.textInverseMuted} style={styles.factKey}>{f.k}</BodyText>
-            <BodyText color="#fff" style={styles.factValue}>{f.v}</BodyText>
+            <BodyText color={colors.textInverse} style={styles.factValue}>{f.v}</BodyText>
           </View>
         ))}
       </View>
       <View style={styles.anomalyBox}>
-        <BodyText color="#fff" style={styles.anomalyTitle}>Open anomaly</BodyText>
+        <BodyText color={colors.textInverse} style={styles.anomalyTitle}>Open anomaly</BodyText>
         <BodyText color={colors.textInverseMuted} style={styles.anomalyBody}>
           {openAnomaly}
         </BodyText>
@@ -63,6 +66,7 @@ export function AgentCopilot() {
           </BodyText>
         </View>
         <View style={styles.headerActions}>
+          <ThemeToggle />
           <Button variant="outlineDark" size="md" onPress={logout}>
             Log out
           </Button>
@@ -94,7 +98,7 @@ export function AgentCopilot() {
   const right = (
     <View style={[styles.rightCol, compact ? styles.rightColCompact : styles.rightColWide]}>
       <View>
-        <Eyebrow color={colors.cta}>Suggested answer</Eyebrow>
+        <Eyebrow color={colors.brandInk}>Suggested answer</Eyebrow>
         <View style={styles.suggestionBox}>
           <BodyText color={colors.textHeading} style={styles.suggestionText}>{suggestion.text}</BodyText>
         </View>
@@ -114,7 +118,7 @@ export function AgentCopilot() {
             <View key={i} style={styles.chunkCard}>
               <View style={styles.chunkHeaderRow}>
                 <BodyText color={colors.textHeading} style={styles.chunkSrc}>{c.src}</BodyText>
-                <BodyText color={colors.cta} style={styles.chunkScore}>{c.score}</BodyText>
+                <BodyText color={colors.brandInk} style={styles.chunkScore}>{c.score}</BodyText>
               </View>
               <BodyText color={colors.textMuted} style={styles.chunkText}>{c.text}</BodyText>
             </View>
@@ -162,10 +166,10 @@ export function AgentCopilot() {
   );
 }
 
-const styles = StyleSheet.create({
-  fill: { flex: 1, backgroundColor: colors.page },
-  stackContent: { backgroundColor: colors.page, flexGrow: 1 },
-  wideRow: { flex: 1, flexDirection: 'row', backgroundColor: colors.page },
+const useStyles = makeStyles((t) => ({
+  fill: { flex: 1, backgroundColor: t.colors.page },
+  stackContent: { backgroundColor: t.colors.page, flexGrow: 1 },
+  wideRow: { flex: 1, flexDirection: 'row', backgroundColor: t.colors.page },
 
   growContent: { flexGrow: 1 },
   leftColWide: { flex: 0, width: 270 },
@@ -176,7 +180,7 @@ const styles = StyleSheet.create({
   factsList: { flexDirection: 'column', gap: 11, marginTop: 22 },
   factRow: {
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.18)',
+    borderTopColor: t.colors.borderInverseSoft,
     paddingTop: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -184,7 +188,7 @@ const styles = StyleSheet.create({
   },
   factKey: { fontSize: 12, lineHeight: 17 },
   factValue: { fontFamily: fontFamily.bodyBold, fontSize: 12.5, textAlign: 'right' },
-  anomalyBox: { backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: radius.md, padding: 14, marginTop: 22 },
+  anomalyBox: { backgroundColor: t.colors.inverseFillWeak, borderRadius: radius.md, padding: 14, marginTop: 22 },
   anomalyTitle: { fontFamily: fontFamily.heading, fontSize: 12 },
   anomalyBody: { fontSize: 11.5, lineHeight: 17, marginTop: 5 },
 
@@ -197,12 +201,12 @@ const styles = StyleSheet.create({
   centerSubtitle: { fontSize: 13, lineHeight: 19, marginTop: 6 },
   transcriptCard: {
     flex: 1,
-    backgroundColor: colors.surfaceCard,
+    backgroundColor: t.colors.surfaceCard,
     borderRadius: radius.md,
     padding: 22,
     gap: 14,
     minHeight: 260,
-    ...shadow.card,
+    ...t.shadow.card,
   },
   transcriptCardCompact: { flex: undefined, minHeight: undefined },
   transcriptRows: { gap: 14 },
@@ -211,25 +215,25 @@ const styles = StyleSheet.create({
   transcriptText: { fontSize: 13.5, lineHeight: 21, flex: 1 },
 
   rightColOuter: { flex: 0, width: 370 },
-  rightCol: { flexGrow: 1, padding: 22, gap: 18, backgroundColor: colors.surfaceCard },
-  rightColWide: { borderLeftWidth: 2, borderLeftColor: colors.surfaceMuted },
-  rightColCompact: { flexGrow: undefined, paddingHorizontal: 22, paddingVertical: 22, borderTopWidth: 2, borderTopColor: colors.surfaceMuted },
+  rightCol: { flexGrow: 1, padding: 22, gap: 18, backgroundColor: t.colors.surfaceCard },
+  rightColWide: { borderLeftWidth: 2, borderLeftColor: t.colors.surfaceMuted },
+  rightColCompact: { flexGrow: undefined, paddingHorizontal: 22, paddingVertical: 22, borderTopWidth: 2, borderTopColor: t.colors.surfaceMuted },
 
-  suggestionBox: { backgroundColor: colors.surfaceMuted, borderRadius: radius.md, padding: 15, marginTop: 11 },
+  suggestionBox: { backgroundColor: t.colors.surfaceMuted, borderRadius: radius.md, padding: 15, marginTop: 11 },
   suggestionText: { fontSize: 13.5, lineHeight: 22 },
   suggestionButtons: { flexDirection: 'row', gap: 8, marginTop: 14 },
 
-  dividedSection: { borderTopWidth: 2, borderTopColor: colors.surfaceMuted, paddingTop: 18 },
+  dividedSection: { borderTopWidth: 2, borderTopColor: t.colors.surfaceMuted, paddingTop: 18 },
   sectionHeading: { fontFamily: fontFamily.heading, fontSize: 13, lineHeight: 17 },
 
   chunksList: { gap: 10, marginTop: 11 },
-  chunkCard: { borderWidth: 2, borderColor: colors.surfaceMuted, borderRadius: radius.md, padding: 12 },
+  chunkCard: { borderWidth: 2, borderColor: t.colors.surfaceMuted, borderRadius: radius.md, padding: 12 },
   chunkHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 10 },
   chunkSrc: { fontFamily: fontFamily.bodyBold, fontSize: 11.5, lineHeight: 15 },
   chunkScore: { fontFamily: fontFamily.bodyBold, fontSize: 11, lineHeight: 14 },
   chunkText: { fontSize: 11.5, lineHeight: 18, marginTop: 6 },
 
   actionsList: { gap: 7 },
-  actionRow: { backgroundColor: colors.surfaceMutedAlt, borderRadius: radius.chip, paddingVertical: 10, paddingHorizontal: 12 },
+  actionRow: { backgroundColor: t.colors.surfaceMutedAlt, borderRadius: radius.chip, paddingVertical: 10, paddingHorizontal: 12 },
   actionText: { fontSize: 12.5, lineHeight: 18 },
-});
+}));

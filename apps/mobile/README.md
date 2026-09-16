@@ -98,9 +98,9 @@ browser (`/health` should return `{"status":"ok"}`).
 - On a **phone or a narrow browser window**, each surface renders full-bleed,
   like a real installed app — that's the intended day-to-day experience,
   and it's what Expo Go / a simulator will show you.
-- On a **wide desktop browser window** (roughly ≥900px), the Public portal,
+- On a **wide desktop browser window** (roughly â‰¥900px), the Public portal,
   Ops dashboard and Agent copilot surfaces additionally get a decorative
-  browser-chrome frame, and the Customer app gets a phone-shaped bezel —
+  browser-chrome frame, and the Customer app gets a phone-shaped bezel â€”
   this just reproduces the side-by-side "concept canvas" look of the
   original design file for review purposes. It's cosmetic only; the
   underlying screens are identical either way.
@@ -116,7 +116,10 @@ browser (`/health` should return `{"status":"ok"}`).
 ```
 src/
   app/                    expo-router routes (single screen: the surface switcher)
-  theme/                  colors, typography, spacing — ported from the BHX design tokens
+  theme/                  design tokens + the runtime theme
+    palettes.ts           the light (cream + CG Infinity amber) and dark
+                          (night + dusty pastel) palettes, same keys in both
+    ThemeProvider.tsx     <ThemeProvider>, useTheme(), makeStyles()
   api/                    typed client for the backend
     client.ts             base URL resolution + fetch wrapper + session header
     hooks.ts              react-query hooks — screens use these, not fetch() directly
@@ -129,11 +132,15 @@ src/
                           response filter chip labels (an index into this
                           list is sent to the backend as a query param)
   components/ui/          shared primitives: Button, Card, Citation, Badge,
-                          Chip, RangeSlider, Text styles, LoadingState/ErrorState
+                          Chip, RangeSlider, Text styles, ThemeToggle,
+                          LoadingState/ErrorState
+  components/brand/       the CG Infinity logo mark + wordmark
   components/icons/       tab bar SVG icons (paths lifted from the prototype)
+                          plus Google/sun/moon/eye glyphs
   components/chrome/      PhoneFrame / BrowserFrame — the adaptive device-chrome
                           wrapper described above
   features/
+    auth/                 sign-in screen, Google OAuth — see its README.md
     customer-app/         the 8 phone screens + bottom tab bar
     public-portal/        the marketing/rates page
     ops-dashboard/         predictive maintenance + demand response
@@ -144,6 +151,46 @@ If you're changing copy, numbers, or formulas, that all now lives in
 `apps/backend` (`app/data.py` + `app/formulas.py`) — see its README/API.md.
 The frontend should only need changes when the shape of a response changes
 (update the type in `src/api/types.ts` and the relevant screen).
+
+## Theming
+
+The app ships a **light** and a **dark** palette and follows the OS setting
+until the user flips the toggle on the sign-in screen (the choice is
+remembered per browser on web). Both palettes live in
+`src/theme/palettes.ts` and expose identical keys.
+
+Every screen in the app goes through it — there are no literal colours left in
+`src/features` or `src/components`. Panels that are plum in *both* modes (the
+customer-app header, the ops sidebar, the portal hero) use the shared
+`textInverse` / `inverseFill*` / `borderInverse*` tokens rather than raw white,
+so one edit re-tints all of them.
+
+In a screen, read the active palette — never import a palette directly, or a
+mode switch will not re-render it:
+
+```tsx
+import { makeStyles, useTheme } from '@/theme';
+
+// Declare the factory at module scope so the memo holds.
+const useStyles = makeStyles((t) => ({ root: { backgroundColor: t.colors.page } }));
+
+export function Screen() {
+  const styles = useStyles();
+  const { colors } = useTheme();
+  ...
+}
+```
+
+## Signing in
+
+Email + passcode accepts anything (there is no backend auth yet); the
+workspace you pick is what starts the session.
+
+**Continue with Google** is a real `expo-auth-session` OAuth flow. It needs an
+OAuth client ID from your own Google Cloud project, so out of the box the
+button runs a clearly-labelled **demo** sign-in instead. Copy `.env.example`
+to `.env` and fill in the IDs to switch it to the real thing —
+see [`src/features/auth/README.md`](src/features/auth/README.md).
 
 ## Known limitations
 

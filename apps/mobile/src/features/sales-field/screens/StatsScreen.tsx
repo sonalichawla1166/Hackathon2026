@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import { useUiStore } from '@/state/store';
 import { useSalesStats } from '@/api/hooks';
-import { colors, radius } from '@/theme';
+import { makeStyles, radius, useTheme } from '@/theme';
 import { fontFamily } from '@/theme/typography';
 import { Badge } from '@/components/ui/Badge';
 import { LoadingState, ErrorState } from '@/components/ui/AsyncState';
@@ -11,6 +11,8 @@ import { outcomeColor } from '../outcomeColors';
 import { stageColor } from '../stageColors';
 
 export function StatsScreen() {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const { coords } = useSalesLocation();
   const radiusKm = useUiStore((s) => s.salesRadiusKm);
   const selectLead = useUiStore((s) => s.selectLead);
@@ -44,7 +46,7 @@ export function StatsScreen() {
           <View key={f.stage} style={styles.funnelRow}>
             <Text style={styles.funnelLabel} numberOfLines={1}>{f.stage}</Text>
             <View style={styles.funnelTrack}>
-              <View style={[styles.funnelFill, { width: `${(f.count / funnelMax) * 100}%`, backgroundColor: stageColor(f.stage) }]} />
+              <View style={[styles.funnelFill, { width: `${(f.count / funnelMax) * 100}%`, backgroundColor: stageColor(f.stage, colors) }]} />
             </View>
             <Text style={styles.funnelCount}>{f.count}</Text>
           </View>
@@ -57,7 +59,7 @@ export function StatsScreen() {
         {data.knockedToday.map((k) => (
           <Pressable key={k.id} style={styles.row} onPress={() => selectLead(k.id)}>
             <Text style={styles.rowAddress} numberOfLines={1}>{k.address}</Text>
-            {k.outcome && <Badge label={k.outcome} bg={outcomeColor(k.outcome)} />}
+            {k.outcome && <Badge label={k.outcome} bg={outcomeColor(k.outcome, colors)} />}
           </Pressable>
         ))}
       </View>
@@ -82,35 +84,35 @@ export function StatsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((t) => ({
   wrap: { padding: 17, gap: 13 },
   kpiRow: { flexDirection: 'row', gap: 8 },
-  kpiCard: { flex: 1, backgroundColor: colors.surfaceMuted, borderRadius: radius.md, padding: 14, alignItems: 'center' },
-  kpiValue: { fontFamily: fontFamily.heading, fontSize: 22, color: colors.textHeading },
-  kpiLabel: { fontFamily: fontFamily.body, fontSize: 10.5, color: colors.textMuted, marginTop: 3, textAlign: 'center' },
-  sectionTitle: { fontFamily: fontFamily.heading, fontSize: 13, color: colors.textHeading, marginTop: 6 },
+  kpiCard: { flex: 1, backgroundColor: t.colors.surfaceMuted, borderRadius: radius.md, padding: 14, alignItems: 'center' },
+  kpiValue: { fontFamily: fontFamily.heading, fontSize: 22, color: t.colors.textHeading },
+  kpiLabel: { fontFamily: fontFamily.body, fontSize: 10.5, color: t.colors.textMuted, marginTop: 3, textAlign: 'center' },
+  sectionTitle: { fontFamily: fontFamily.heading, fontSize: 13, color: t.colors.textHeading, marginTop: 6 },
   funnelHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 },
-  funnelLink: { fontFamily: fontFamily.bodyBold, fontSize: 12, color: colors.accent },
-  funnelCard: { backgroundColor: colors.surfaceCard, borderRadius: radius.md, padding: 14, gap: 10 },
+  funnelLink: { fontFamily: fontFamily.bodyBold, fontSize: 12, color: t.colors.accent },
+  funnelCard: { backgroundColor: t.colors.surfaceCard, borderRadius: radius.md, padding: 14, gap: 10 },
   funnelRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  funnelLabel: { width: 88, fontFamily: fontFamily.body, fontSize: 11.5, color: colors.textMuted },
-  funnelTrack: { flex: 1, height: 8, borderRadius: 4, backgroundColor: colors.surfaceMutedAlt, overflow: 'hidden' },
+  funnelLabel: { width: 88, fontFamily: fontFamily.body, fontSize: 11.5, color: t.colors.textMuted },
+  funnelTrack: { flex: 1, height: 8, borderRadius: 4, backgroundColor: t.colors.surfaceMutedAlt, overflow: 'hidden' },
   funnelFill: { height: '100%', borderRadius: 4 },
-  funnelCount: { width: 20, textAlign: 'right', fontFamily: fontFamily.bodyBold, fontSize: 12.5, color: colors.textHeading },
-  sectionSub: { fontFamily: fontFamily.body, fontSize: 11.5, color: colors.textMuted, marginTop: -4, lineHeight: 16 },
-  empty: { fontFamily: fontFamily.body, fontSize: 12.5, color: colors.textMuted },
+  funnelCount: { width: 20, textAlign: 'right', fontFamily: fontFamily.bodyBold, fontSize: 12.5, color: t.colors.textHeading },
+  sectionSub: { fontFamily: fontFamily.body, fontSize: 11.5, color: t.colors.textMuted, marginTop: -4, lineHeight: 16 },
+  empty: { fontFamily: fontFamily.body, fontSize: 12.5, color: t.colors.textMuted },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    backgroundColor: colors.surfaceCard,
+    backgroundColor: t.colors.surfaceCard,
     borderWidth: 2,
-    borderColor: colors.surfaceMuted,
+    borderColor: t.colors.surfaceMuted,
     borderRadius: radius.md,
     padding: 12,
   },
-  rowAddress: { flex: 1, fontFamily: fontFamily.bodyMedium, fontSize: 13, color: colors.textHeading },
-  rowDistance: { fontFamily: fontFamily.bodyBold, fontSize: 12, color: colors.accent },
-  routeNum: { width: 22, height: 22, borderRadius: 11, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
-  routeNumText: { fontFamily: fontFamily.bodyBold, fontSize: 11, color: '#fff' },
-});
+  rowAddress: { flex: 1, fontFamily: fontFamily.bodyMedium, fontSize: 13, color: t.colors.textHeading },
+  rowDistance: { fontFamily: fontFamily.bodyBold, fontSize: 12, color: t.colors.accent },
+  routeNum: { width: 22, height: 22, borderRadius: 11, backgroundColor: t.colors.primary, alignItems: 'center', justifyContent: 'center' },
+  routeNumText: { fontFamily: fontFamily.bodyBold, fontSize: 11, color: t.colors.textInverse },
+}));

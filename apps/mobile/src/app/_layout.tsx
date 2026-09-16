@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
+import { View } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
+import * as SystemUI from 'expo-system-ui';
 import { useFonts } from 'expo-font';
 import { WorkSans_600SemiBold, WorkSans_700Bold } from '@expo-google-fonts/work-sans';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { colors } from '@/theme';
+import { ThemeProvider, useTheme } from '@/theme';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -36,11 +38,30 @@ export default function RootLayout() {
   if (!loaded) return null;
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.page }}>
-        <StatusBar style="light" />
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <ThemedShell />
+      </QueryClientProvider>
+    </ThemeProvider>
+  );
+}
+
+// Split out so it can call `useTheme()` — the provider has to sit above it.
+function ThemedShell() {
+  const { colors, mode } = useTheme();
+
+  // Keeps the native window background (visible behind sheets and during
+  // rotation) in step with the active theme.
+  useEffect(() => {
+    SystemUI.setBackgroundColorAsync(colors.page).catch(() => {});
+  }, [colors.page]);
+
+  return (
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.page }}>
+      <View style={{ flex: 1, backgroundColor: colors.page }}>
+        <StatusBar style={mode === 'dark' ? 'light' : 'dark'} />
         <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.page } }} />
-      </GestureHandlerRootView>
-    </QueryClientProvider>
+      </View>
+    </GestureHandlerRootView>
   );
 }

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
+import { View, Text, TextInput, Pressable } from 'react-native';
 import { useUiStore } from '@/state/store';
 import { useLogKnock, useSalesLeadDetail, useSetStage } from '@/api/hooks';
-import { colors, radius } from '@/theme';
+import { makeStyles, radius, useTheme } from '@/theme';
 import { fontFamily } from '@/theme/typography';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -13,6 +13,8 @@ import { outcomeColor } from '../outcomeColors';
 import { stageColor } from '../stageColors';
 
 export function LeadDetailScreen() {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const leadId = useUiStore((s) => s.selectedLeadId);
   const selectLead = useUiStore((s) => s.selectLead);
   const { data, isPending, isError, error, refetch } = useSalesLeadDetail(leadId);
@@ -58,9 +60,9 @@ export function LeadDetailScreen() {
         <Text style={styles.distanceNote}>{data.distanceLabel} away</Text>
 
         <View style={styles.badgeRow}>
-          <Badge label={data.stage} bg={stageColor(data.stage)} />
+          <Badge label={data.stage} bg={stageColor(data.stage, colors)} />
           <Badge label={data.accountStatus} bg={colors.primary} />
-          {data.lastOutcome && <Badge label={`Last visit: ${data.lastOutcome}`} bg={outcomeColor(data.lastOutcome)} />}
+          {data.lastOutcome && <Badge label={`Last visit: ${data.lastOutcome}`} bg={outcomeColor(data.lastOutcome, colors)} />}
         </View>
 
         <View style={styles.field}>
@@ -90,8 +92,8 @@ export function LeadDetailScreen() {
               label={s}
               selected={data.stage === s}
               onPress={() => pickStage(s)}
-              selectedBg={stageColor(s)}
-              selectedBorder={stageColor(s)}
+              selectedBg={stageColor(s, colors)}
+              selectedBorder={stageColor(s, colors)}
             />
           ))}
         </View>
@@ -101,7 +103,7 @@ export function LeadDetailScreen() {
         <Text style={styles.knockTitle}>Log a knock</Text>
         <View style={styles.chipRow}>
           {['Sold', 'Not home', 'Not interested', 'Callback requested', 'Do not contact'].map((o) => (
-            <Chip key={o} label={o} selected={outcome === o} onPress={() => setOutcome(o)} selectedBg={outcomeColor(o)} selectedBorder={outcomeColor(o)} />
+            <Chip key={o} label={o} selected={outcome === o} onPress={() => setOutcome(o)} selectedBg={outcomeColor(o, colors)} selectedBorder={outcomeColor(o, colors)} />
           ))}
         </View>
         <TextInput
@@ -123,7 +125,7 @@ export function LeadDetailScreen() {
         {data.history.map((v, i) => (
           <View key={i} style={styles.historyRow}>
             <View style={styles.historyTop}>
-              <Badge label={v.outcome} bg={outcomeColor(v.outcome)} />
+              <Badge label={v.outcome} bg={outcomeColor(v.outcome, colors)} />
               <Text style={styles.historyDate}>{v.date}</Text>
             </View>
             <Text style={styles.historyRep}>{v.rep}</Text>
@@ -135,38 +137,38 @@ export function LeadDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((t) => ({
   wrap: { padding: 17, gap: 13 },
   backRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  backArrow: { fontFamily: fontFamily.bodyBold, fontSize: 20, color: colors.accent },
-  backLabel: { fontFamily: fontFamily.bodyBold, fontSize: 13, color: colors.accent },
-  address: { fontFamily: fontFamily.heading, fontSize: 18, color: colors.textHeading },
-  distanceNote: { fontFamily: fontFamily.body, fontSize: 12, color: colors.textMuted, marginTop: 3 },
+  backArrow: { fontFamily: fontFamily.bodyBold, fontSize: 20, color: t.colors.accent },
+  backLabel: { fontFamily: fontFamily.bodyBold, fontSize: 13, color: t.colors.accent },
+  address: { fontFamily: fontFamily.heading, fontSize: 18, color: t.colors.textHeading },
+  distanceNote: { fontFamily: fontFamily.body, fontSize: 12, color: t.colors.textMuted, marginTop: 3 },
   badgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 10 },
   field: { marginTop: 12 },
-  fieldLabel: { fontFamily: fontFamily.body, fontSize: 10.5, textTransform: 'uppercase', letterSpacing: 0.6, color: colors.textMuted },
-  fieldValue: { fontFamily: fontFamily.body, fontSize: 13, color: colors.textHeading, marginTop: 3, lineHeight: 18 },
-  knockTitle: { fontFamily: fontFamily.heading, fontSize: 14, color: colors.textHeading, marginBottom: 10 },
+  fieldLabel: { fontFamily: fontFamily.body, fontSize: 10.5, textTransform: 'uppercase', letterSpacing: 0.6, color: t.colors.textMuted },
+  fieldValue: { fontFamily: fontFamily.body, fontSize: 13, color: t.colors.textHeading, marginTop: 3, lineHeight: 18 },
+  knockTitle: { fontFamily: fontFamily.heading, fontSize: 14, color: t.colors.textHeading, marginBottom: 10 },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   notesInput: {
     borderWidth: 2,
-    borderColor: colors.borderMuted,
+    borderColor: t.colors.borderMuted,
     borderRadius: radius.sm,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontFamily: fontFamily.body,
     fontSize: 13,
-    color: colors.textBody,
-    backgroundColor: colors.surfaceCard,
+    color: t.colors.textBody,
+    backgroundColor: t.colors.surfaceCard,
     marginTop: 10,
     minHeight: 64,
     textAlignVertical: 'top',
   },
-  sectionTitle: { fontFamily: fontFamily.heading, fontSize: 13, color: colors.textHeading, marginTop: 4 },
-  emptyHistory: { fontFamily: fontFamily.body, fontSize: 12.5, color: colors.textMuted },
-  historyRow: { backgroundColor: colors.surfaceCard, borderWidth: 2, borderColor: colors.surfaceMuted, borderRadius: radius.md, padding: 12 },
+  sectionTitle: { fontFamily: fontFamily.heading, fontSize: 13, color: t.colors.textHeading, marginTop: 4 },
+  emptyHistory: { fontFamily: fontFamily.body, fontSize: 12.5, color: t.colors.textMuted },
+  historyRow: { backgroundColor: t.colors.surfaceCard, borderWidth: 2, borderColor: t.colors.surfaceMuted, borderRadius: radius.md, padding: 12 },
   historyTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  historyDate: { fontFamily: fontFamily.bodyMedium, fontSize: 11.5, color: colors.textMuted },
-  historyRep: { fontFamily: fontFamily.body, fontSize: 11.5, color: colors.textMuted, marginTop: 6 },
-  historyNotes: { fontFamily: fontFamily.body, fontSize: 12.5, color: colors.textHeading, marginTop: 4, lineHeight: 17 },
-});
+  historyDate: { fontFamily: fontFamily.bodyMedium, fontSize: 11.5, color: t.colors.textMuted },
+  historyRep: { fontFamily: fontFamily.body, fontSize: 11.5, color: t.colors.textMuted, marginTop: 6 },
+  historyNotes: { fontFamily: fontFamily.body, fontSize: 12.5, color: t.colors.textHeading, marginTop: 4, lineHeight: 17 },
+}));

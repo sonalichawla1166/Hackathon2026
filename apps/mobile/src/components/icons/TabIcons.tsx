@@ -5,10 +5,12 @@ import Svg, { Path } from 'react-native-svg';
 
 interface IconProps {
   size?: number;
+  /** Always pass one from the active theme — the `currentColor` default is
+   *  only a fallback and inherits whatever the platform decides. */
   color?: string;
 }
 
-export function HomeTabIcon({ size = 21, color = '#0F2835' }: IconProps) {
+export function HomeTabIcon({ size = 21, color = 'currentColor' }: IconProps) {
   const w = (size * 51.9) / 84;
   return (
     <Svg width={w} height={size} viewBox="0 0 51.9 84" fill={color}>
@@ -18,7 +20,7 @@ export function HomeTabIcon({ size = 21, color = '#0F2835' }: IconProps) {
   );
 }
 
-export function ChatTabIcon({ size = 17, color = '#0F2835' }: IconProps) {
+export function ChatTabIcon({ size = 17, color = 'currentColor' }: IconProps) {
   const w = (size * 24) / 22;
   return (
     <Svg width={w} height={size} viewBox="0 0 24 22" fill={color}>
@@ -27,7 +29,7 @@ export function ChatTabIcon({ size = 17, color = '#0F2835' }: IconProps) {
   );
 }
 
-export function BillTabIcon({ size = 20, color = '#0F2835' }: IconProps) {
+export function BillTabIcon({ size = 20, color = 'currentColor' }: IconProps) {
   const w = (size * 60.3) / 69;
   return (
     <Svg width={w} height={size} viewBox="0 0 60.3 69" fill={color}>
@@ -36,7 +38,7 @@ export function BillTabIcon({ size = 20, color = '#0F2835' }: IconProps) {
   );
 }
 
-export function ForYouTabIcon({ size = 21, color = '#0F2835' }: IconProps) {
+export function ForYouTabIcon({ size = 21, color = 'currentColor' }: IconProps) {
   const w = (size * 60.6) / 83.9;
   return (
     <Svg width={w} height={size} viewBox="0 0 60.6 83.9" fill={color}>
@@ -47,7 +49,7 @@ export function ForYouTabIcon({ size = 21, color = '#0F2835' }: IconProps) {
 
 // Not lifted from the design file (the Sales surface wasn't part of the
 // original handoff) — drawn to match the others' single-path, filled style.
-export function LeadsTabIcon({ size = 21, color = '#0F2835' }: IconProps) {
+export function LeadsTabIcon({ size = 21, color = 'currentColor' }: IconProps) {
   const w = (size * 60) / 84;
   return (
     <Svg width={w} height={size} viewBox="0 0 60 84" fill={color}>
@@ -59,7 +61,7 @@ export function LeadsTabIcon({ size = 21, color = '#0F2835' }: IconProps) {
 
 // Three uneven kanban columns — represents the pipeline board's stage
 // layout, matching the others' single-path, filled style.
-export function PipelineTabIcon({ size = 21, color = '#0F2835' }: IconProps) {
+export function PipelineTabIcon({ size = 21, color = 'currentColor' }: IconProps) {
   const w = (size * 84) / 84;
   return (
     <Svg width={w} height={size} viewBox="0 0 84 84" fill={color}>
@@ -70,7 +72,7 @@ export function PipelineTabIcon({ size = 21, color = '#0F2835' }: IconProps) {
   );
 }
 
-export function StatsTabIcon({ size = 21, color = '#0F2835' }: IconProps) {
+export function StatsTabIcon({ size = 21, color = 'currentColor' }: IconProps) {
   const w = (size * 84) / 84;
   return (
     <Svg width={w} height={size} viewBox="0 0 84 84" fill={color}>
@@ -81,7 +83,7 @@ export function StatsTabIcon({ size = 21, color = '#0F2835' }: IconProps) {
   );
 }
 
-export function ReportTabIcon({ size = 21, color = '#0F2835' }: IconProps) {
+export function ReportTabIcon({ size = 21, color = 'currentColor' }: IconProps) {
   const w = (size * 79.4) / 83.9;
   return (
     <Svg width={w} height={size} viewBox="0 0 79.4 83.9" fill={color}>

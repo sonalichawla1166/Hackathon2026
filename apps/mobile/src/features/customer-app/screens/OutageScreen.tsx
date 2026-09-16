@@ -1,13 +1,15 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import { useUiStore } from '@/state/store';
 import { useOutageMap, useReportOutage } from '@/api/hooks';
-import { colors } from '@/theme';
+import { makeStyles, useTheme } from '@/theme';
 import { fontFamily } from '@/theme/typography';
 import { Button } from '@/components/ui/Button';
 import { LoadingState, ErrorState } from '@/components/ui/AsyncState';
 
 export function OutageScreen() {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const reportPicks = useUiStore((s) => s.reportPicks);
   const toggleReportPick = useUiStore((s) => s.toggleReportPick);
   const { data, isPending, isError, error, refetch } = useOutageMap();
@@ -59,7 +61,7 @@ export function OutageScreen() {
                   on ? { backgroundColor: colors.primary, borderColor: colors.primary } : { backgroundColor: colors.surfaceCard, borderColor: colors.surfaceMuted },
                 ]}
               >
-                <Text style={[styles.chipText, { color: on ? '#fff' : colors.textHeading }]}>{label}</Text>
+                <Text style={[styles.chipText, { color: on ? colors.textInverse : colors.textHeading }]}>{label}</Text>
               </Pressable>
             );
           })}
@@ -89,28 +91,28 @@ export function OutageScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((t) => ({
   wrap: { padding: 17, gap: 15 },
-  mapCard: { backgroundColor: colors.primary, borderRadius: 5.4, padding: 15, overflow: 'hidden' },
-  mapTitle: { fontFamily: fontFamily.heading, fontSize: 12.5, color: '#fff' },
-  map: { height: 150, marginTop: 12, borderRadius: 3.2, backgroundColor: '#253541', overflow: 'hidden' },
+  mapCard: { backgroundColor: t.colors.primary, borderRadius: 5.4, padding: 15, overflow: 'hidden' },
+  mapTitle: { fontFamily: fontFamily.heading, fontSize: 12.5, color: t.colors.textInverse },
+  map: { height: 150, marginTop: 12, borderRadius: 3.2, backgroundColor: t.colors.surfaceMapCanvas, overflow: 'hidden' },
   youAreHere: {
     position: 'absolute', left: '47%', top: '52%', width: 14, height: 14, borderRadius: 7,
-    backgroundColor: '#fff', borderWidth: 3, borderColor: colors.cta,
+    backgroundColor: t.colors.inverseSolid, borderWidth: 3, borderColor: t.colors.cta,
   },
-  mapCaption: { fontFamily: fontFamily.body, fontSize: 11.5, color: 'rgba(255,255,255,0.73)', marginTop: 10, lineHeight: 16 },
-  formCard: { backgroundColor: colors.surfaceCard, borderWidth: 2, borderColor: colors.surfaceMuted, borderRadius: 5.4, padding: 15 },
-  formTitle: { fontFamily: fontFamily.heading, fontSize: 13, color: colors.textHeading },
+  mapCaption: { fontFamily: fontFamily.body, fontSize: 11.5, color: t.colors.textInverseMuted, marginTop: 10, lineHeight: 16 },
+  formCard: { backgroundColor: t.colors.surfaceCard, borderWidth: 2, borderColor: t.colors.surfaceMuted, borderRadius: 5.4, padding: 15 },
+  formTitle: { fontFamily: fontFamily.heading, fontSize: 13, color: t.colors.textHeading },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 7, marginTop: 11 },
   chip: { borderWidth: 2, borderRadius: 3.2, paddingHorizontal: 11, paddingVertical: 8 },
   chipText: { fontFamily: fontFamily.body, fontSize: 12 },
   footerRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10,
-    borderTopWidth: 2, borderTopColor: colors.surfaceMuted, marginTop: 14, paddingTop: 13,
+    borderTopWidth: 2, borderTopColor: t.colors.surfaceMuted, marginTop: 14, paddingTop: 13,
   },
-  address: { fontFamily: fontFamily.body, fontSize: 11.5, color: colors.textMuted, lineHeight: 16 },
-  ticketCard: { backgroundColor: colors.surfaceMuted, borderRadius: 5.4, padding: 15 },
-  ticketTitle: { fontFamily: fontFamily.heading, fontSize: 13, color: colors.textHeading },
-  ticketBody: { fontFamily: fontFamily.body, fontSize: 12.5, color: colors.textMuted, marginTop: 5, lineHeight: 18 },
-  ticketNote: { fontFamily: fontFamily.body, fontSize: 11, color: colors.accent, marginTop: 8 },
-});
+  address: { fontFamily: fontFamily.body, fontSize: 11.5, color: t.colors.textMuted, lineHeight: 16 },
+  ticketCard: { backgroundColor: t.colors.surfaceMuted, borderRadius: 5.4, padding: 15 },
+  ticketTitle: { fontFamily: fontFamily.heading, fontSize: 13, color: t.colors.textHeading },
+  ticketBody: { fontFamily: fontFamily.body, fontSize: 12.5, color: t.colors.textMuted, marginTop: 5, lineHeight: 18 },
+  ticketNote: { fontFamily: fontFamily.body, fontSize: 11, color: t.colors.accent, marginTop: 8 },
+}));

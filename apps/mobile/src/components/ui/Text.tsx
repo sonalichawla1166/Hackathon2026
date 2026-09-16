@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text as RNText, TextProps, StyleSheet, Platform } from 'react-native';
-import { colors } from '@/theme';
+import { useTheme } from '@/theme';
 import { fontFamily } from '@/theme/typography';
 
 const monoFamily = Platform.select({ ios: 'Menlo', android: 'monospace', default: 'ui-monospace, Menlo, monospace' });
@@ -9,40 +9,51 @@ interface Props extends TextProps {
   color?: string;
 }
 
-export function Eyebrow({ style, color = colors.accent, ...rest }: Props) {
-  return <RNText {...rest} style={[styles.eyebrow, { color }, style]} />;
+// Type sizes never change with the theme, so the sheet stays static; only the
+// default colour is read from the active palette.
+export function Eyebrow({ style, color, ...rest }: Props) {
+  const { colors } = useTheme();
+  return <RNText {...rest} style={[styles.eyebrow, { color: color ?? colors.accent }, style]} />;
 }
 
-export function H1({ style, color = colors.textHeading, ...rest }: Props) {
-  return <RNText {...rest} style={[styles.h1, { color }, style]} />;
+export function H1({ style, color, ...rest }: Props) {
+  const { colors } = useTheme();
+  return <RNText {...rest} style={[styles.h1, { color: color ?? colors.textHeading }, style]} />;
 }
 
-export function H2({ style, color = colors.textHeading, ...rest }: Props) {
-  return <RNText {...rest} style={[styles.h2, { color }, style]} />;
+export function H2({ style, color, ...rest }: Props) {
+  const { colors } = useTheme();
+  return <RNText {...rest} style={[styles.h2, { color: color ?? colors.textHeading }, style]} />;
 }
 
-export function H3({ style, color = colors.textHeading, ...rest }: Props) {
-  return <RNText {...rest} style={[styles.h3, { color }, style]} />;
+export function H3({ style, color, ...rest }: Props) {
+  const { colors } = useTheme();
+  return <RNText {...rest} style={[styles.h3, { color: color ?? colors.textHeading }, style]} />;
 }
 
-export function H4({ style, color = colors.textHeading, ...rest }: Props) {
-  return <RNText {...rest} style={[styles.h4, { color }, style]} />;
+export function H4({ style, color, ...rest }: Props) {
+  const { colors } = useTheme();
+  return <RNText {...rest} style={[styles.h4, { color: color ?? colors.textHeading }, style]} />;
 }
 
-export function BodyText({ style, color = colors.textMuted, ...rest }: Props) {
-  return <RNText {...rest} style={[styles.body, { color }, style]} />;
+export function BodyText({ style, color, ...rest }: Props) {
+  const { colors } = useTheme();
+  return <RNText {...rest} style={[styles.body, { color: color ?? colors.textMuted }, style]} />;
 }
 
-export function BodyStrong({ style, color = colors.textHeading, ...rest }: Props) {
-  return <RNText {...rest} style={[styles.bodyStrong, { color }, style]} />;
+export function BodyStrong({ style, color, ...rest }: Props) {
+  const { colors } = useTheme();
+  return <RNText {...rest} style={[styles.bodyStrong, { color: color ?? colors.textHeading }, style]} />;
 }
 
-export function Caption({ style, color = colors.textMuted, ...rest }: Props) {
-  return <RNText {...rest} style={[styles.caption, { color }, style]} />;
+export function Caption({ style, color, ...rest }: Props) {
+  const { colors } = useTheme();
+  return <RNText {...rest} style={[styles.caption, { color: color ?? colors.textMuted }, style]} />;
 }
 
-export function MonoText({ style, color = colors.textHeading, ...rest }: Props) {
-  return <RNText {...rest} style={[styles.mono, { color }, style]} />;
+export function MonoText({ style, color, ...rest }: Props) {
+  const { colors } = useTheme();
+  return <RNText {...rest} style={[styles.mono, { color: color ?? colors.textHeading }, style]} />;
 }
 
 const styles = StyleSheet.create({

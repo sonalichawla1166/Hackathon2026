@@ -1,7 +1,13 @@
 // Derived view-model calculations, ported from the `renderVals()` method in
 // `project/OneGridAI Platform.dc.html`. Kept as pure functions so screens can
 // memoize on exactly the store fields they read.
-import { colors } from '@/theme';
+// NOTE: this module is not imported anywhere and does not currently compile
+// (see the missing `@/data/content` exports below) — screens read the same
+// values from the backend via `src/api/hooks.ts`. It reads the dark palette
+// directly rather than the active theme because it is not a React module.
+import { darkTheme } from '@/theme';
+
+const colors = darkTheme.colors;
 import {
   ASSETS,
   DR_FILTERS,

@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import { useUiStore } from '@/state/store';
 import { useSalesLeads } from '@/api/hooks';
-import { colors, radius } from '@/theme';
+import { makeStyles, radius, useTheme } from '@/theme';
 import { fontFamily } from '@/theme/typography';
 import { Badge } from '@/components/ui/Badge';
 import { RangeSlider } from '@/components/ui/RangeSlider';
@@ -13,6 +13,8 @@ import { outcomeColor } from '../outcomeColors';
 import { stageColor } from '../stageColors';
 
 export function LeadsScreen() {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const { coords, usingDeviceLocation, status, useDeviceLocation, useTerritoryBase } = useSalesLocation();
   const radiusKm = useUiStore((s) => s.salesRadiusKm);
   const setRadiusKm = useUiStore((s) => s.setSalesRadiusKm);
@@ -78,9 +80,12 @@ export function LeadsScreen() {
                 {l.segment}
               </Text>
               <View style={styles.badgeRow}>
-                <Badge label={l.stage} bg={stageColor(l.stage)} />
+                <Badge label={l.stage} bg={stageColor(l.stage, colors)} />
                 {l.lastOutcome && (
-                  <Badge label={l.knockedToday ? `Today: ${l.lastOutcome}` : `Last: ${l.lastOutcome}`} bg={outcomeColor(l.lastOutcome)} />
+                  <Badge
+                    label={l.knockedToday ? `Today: ${l.lastOutcome}` : `Last: ${l.lastOutcome}`}
+                    bg={outcomeColor(l.lastOutcome, colors)}
+                  />
                 )}
               </View>
             </View>
@@ -92,34 +97,34 @@ export function LeadsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((t) => ({
   wrap: { padding: 17, gap: 13 },
   locationRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
-  locationNote: { flex: 1, fontFamily: fontFamily.body, fontSize: 11, color: colors.textMuted },
-  locationAction: { fontFamily: fontFamily.bodyBold, fontSize: 11.5, color: colors.accent },
+  locationNote: { flex: 1, fontFamily: fontFamily.body, fontSize: 11, color: t.colors.textMuted },
+  locationAction: { fontFamily: fontFamily.bodyBold, fontSize: 11.5, color: t.colors.accent },
   kpiRow: { flexDirection: 'row', gap: 8 },
-  kpiCard: { flex: 1, backgroundColor: colors.surfaceMuted, borderRadius: radius.md, padding: 12, alignItems: 'center' },
-  kpiValue: { fontFamily: fontFamily.heading, fontSize: 20, color: colors.textHeading },
-  kpiLabel: { fontFamily: fontFamily.body, fontSize: 10, color: colors.textMuted, marginTop: 3, textAlign: 'center' },
+  kpiCard: { flex: 1, backgroundColor: t.colors.surfaceMuted, borderRadius: radius.md, padding: 12, alignItems: 'center' },
+  kpiValue: { fontFamily: fontFamily.heading, fontSize: 20, color: t.colors.textHeading },
+  kpiLabel: { fontFamily: fontFamily.body, fontSize: 10, color: t.colors.textMuted, marginTop: 3, textAlign: 'center' },
   sliderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  sliderLabel: { fontFamily: fontFamily.bodyMedium, fontSize: 12.5, color: colors.textMuted },
-  sliderValue: { fontFamily: fontFamily.heading, fontSize: 14, color: colors.textHeading },
-  sectionTitle: { fontFamily: fontFamily.heading, fontSize: 13, color: colors.textHeading, marginTop: 4 },
+  sliderLabel: { fontFamily: fontFamily.bodyMedium, fontSize: 12.5, color: t.colors.textMuted },
+  sliderValue: { fontFamily: fontFamily.heading, fontSize: 14, color: t.colors.textHeading },
+  sectionTitle: { fontFamily: fontFamily.heading, fontSize: 13, color: t.colors.textHeading, marginTop: 4 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: colors.surfaceCard,
+    backgroundColor: t.colors.surfaceCard,
     borderWidth: 2,
-    borderColor: colors.surfaceMuted,
+    borderColor: t.colors.surfaceMuted,
     borderRadius: radius.md,
     padding: 13,
   },
   rowTop: { flexDirection: 'row', justifyContent: 'space-between', gap: 8 },
-  address: { flex: 1, fontFamily: fontFamily.heading, fontSize: 13.5, color: colors.textHeading },
-  distance: { fontFamily: fontFamily.bodyBold, fontSize: 12, color: colors.accent },
-  customer: { fontFamily: fontFamily.body, fontSize: 12, color: colors.textMuted, marginTop: 3 },
-  segment: { fontFamily: fontFamily.body, fontSize: 11.5, color: colors.textMuted, marginTop: 4, lineHeight: 16 },
+  address: { flex: 1, fontFamily: fontFamily.heading, fontSize: 13.5, color: t.colors.textHeading },
+  distance: { fontFamily: fontFamily.bodyBold, fontSize: 12, color: t.colors.accent },
+  customer: { fontFamily: fontFamily.body, fontSize: 12, color: t.colors.textMuted, marginTop: 3 },
+  segment: { fontFamily: fontFamily.body, fontSize: 11.5, color: t.colors.textMuted, marginTop: 4, lineHeight: 16 },
   badgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6 },
-  chevron: { fontFamily: fontFamily.bodyBold, fontSize: 20, color: colors.accent },
-});
+  chevron: { fontFamily: fontFamily.bodyBold, fontSize: 20, color: t.colors.accent },
+}));

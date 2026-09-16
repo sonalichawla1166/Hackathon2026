@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Pressable, Text, ScrollView, StyleSheet, useWindowDimensions } from 'react-native';
+import { View, Pressable, Text, ScrollView, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useUiStore, OpsView } from '@/state/store';
-import { colors, gradients } from '@/theme';
+import { makeStyles, useTheme } from '@/theme';
 import { fontFamily } from '@/theme/typography';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { ScreenTransition } from '@/components/ui/ScreenTransition';
 import { MaintenanceQueue } from './MaintenanceQueue';
 import { DemandResponseView } from './DemandResponseView';
@@ -17,6 +18,8 @@ const FOOTNOTE =
   'Maintenance risk model trained on the UCI AI4I 2020 set, relabelled to grid assets. Proxy data, stated openly.';
 
 export function OpsDashboard() {
+  const styles = useStyles();
+  const { colors, gradients } = useTheme();
   const { width } = useWindowDimensions();
   const compact = width < 900;
   const opsView = useUiStore((s) => s.opsView);
@@ -37,9 +40,12 @@ export function OpsDashboard() {
               <Text style={styles.brandTitle}>OneGridAI Ops</Text>
               {!compact && <Text style={styles.brandSubtitle}>Con Edison · Manhattan West</Text>}
             </View>
-            <Pressable onPress={logout} style={styles.logoutRow}>
-              <Text style={styles.logoutLabel}>Log out</Text>
-            </Pressable>
+            <View style={styles.brandActions}>
+              <ThemeToggle onInverse compact />
+              <Pressable onPress={logout} style={styles.logoutRow}>
+                <Text style={styles.logoutLabel}>Log out</Text>
+              </Pressable>
+            </View>
           </View>
 
           <View style={[styles.navList, compact && styles.navListCompact]}>
@@ -54,7 +60,7 @@ export function OpsDashboard() {
                     {
                       borderLeftColor: !compact && active ? colors.cta : 'transparent',
                       borderTopColor: compact && active ? colors.cta : 'transparent',
-                      backgroundColor: active ? 'rgba(255,255,255,0.12)' : 'transparent',
+                      backgroundColor: active ? colors.inverseFillWeak : 'transparent',
                     },
                   ]}
                 >
@@ -88,9 +94,10 @@ export function OpsDashboard() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((t) => ({
+  brandActions: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   fill: { flex: 1, width: '100%' },
-  root: { flex: 1, flexDirection: 'row', backgroundColor: colors.page },
+  root: { flex: 1, flexDirection: 'row', backgroundColor: t.colors.page },
   rootCompact: { flexDirection: 'column' },
 
   sidebar: { width: 224, paddingVertical: 22 },
@@ -113,30 +120,30 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 8,
   },
-  brandTitle: { fontFamily: fontFamily.heading, fontSize: 16, color: '#fff' },
-  brandSubtitle: { fontFamily: fontFamily.body, fontSize: 11, color: 'rgba(255,255,255,0.73)', marginTop: 4 },
+  brandTitle: { fontFamily: fontFamily.heading, fontSize: 16, color: t.colors.textInverse },
+  brandSubtitle: { fontFamily: fontFamily.body, fontSize: 11, color: t.colors.textInverseMuted, marginTop: 4 },
   logoutRow: {
     paddingVertical: 5,
     paddingHorizontal: 9,
     borderRadius: 5,
     borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.35)',
+    borderColor: t.colors.borderInverse,
   },
-  logoutLabel: { fontFamily: fontFamily.bodyBold, fontSize: 10.5, color: '#fff' },
+  logoutLabel: { fontFamily: fontFamily.bodyBold, fontSize: 10.5, color: t.colors.textInverse },
 
   navList: {},
   navListCompact: { flexDirection: 'row', paddingHorizontal: 16, paddingBottom: 12, gap: 8 },
 
   navItem: { paddingVertical: 12, paddingHorizontal: 20, borderLeftWidth: 4 },
   navItemCompact: { paddingVertical: 10, paddingHorizontal: 12, borderTopWidth: 3, borderRadius: 4 },
-  navLabel: { fontFamily: fontFamily.bodyBold, fontSize: 13, color: '#fff' },
-  navMeta: { fontFamily: fontFamily.body, fontSize: 11, color: 'rgba(255,255,255,0.73)', marginTop: 3 },
+  navLabel: { fontFamily: fontFamily.bodyBold, fontSize: 13, color: t.colors.textInverse },
+  navMeta: { fontFamily: fontFamily.body, fontSize: 11, color: t.colors.textInverseMuted, marginTop: 3 },
 
-  footnoteBlock: { marginTop: 'auto', paddingHorizontal: 20, paddingTop: 18, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.18)' },
-  footnoteBlockCompact: { backgroundColor: colors.primary, borderRadius: 5.4, padding: 14, marginTop: 8 },
-  footnoteText: { fontFamily: fontFamily.body, fontSize: 11, lineHeight: 16, color: 'rgba(255,255,255,0.73)' },
+  footnoteBlock: { marginTop: 'auto', paddingHorizontal: 20, paddingTop: 18, borderTopWidth: 1, borderTopColor: t.colors.borderInverseSoft },
+  footnoteBlockCompact: { backgroundColor: t.colors.primary, borderRadius: 5.4, padding: 14, marginTop: 8 },
+  footnoteText: { fontFamily: fontFamily.body, fontSize: 11, lineHeight: 16, color: t.colors.textInverseMuted },
 
   content: { flex: 1, minWidth: 0 },
   contentInner: { padding: 26, paddingHorizontal: 30, paddingBottom: 34 },
   contentInnerCompact: { padding: 16, paddingBottom: 24 },
-});
+}));

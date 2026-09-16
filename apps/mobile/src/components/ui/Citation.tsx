@@ -1,11 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { colors } from '@/theme';
+import { useTheme } from '@/theme';
 import { fontFamily } from '@/theme/typography';
 
 export function Citation({ label, onInverse = false }: { label: string; onInverse?: boolean }) {
-  const color = onInverse ? 'rgba(255,255,255,0.73)' : colors.accent;
-  const border = onInverse ? 'rgba(255,255,255,0.35)' : colors.accent;
+  const { colors } = useTheme();
+  const color = onInverse ? colors.textInverseMuted : colors.accent;
+  const border = onInverse ? colors.borderInverse : colors.accent;
   return (
     <View style={[styles.chip, { borderColor: border }]}>
       <Text style={[styles.text, { color }]}>{label}</Text>
