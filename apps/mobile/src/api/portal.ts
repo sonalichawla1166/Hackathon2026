@@ -1,5 +1,5 @@
 import { apiGet } from './client';
-import type { PortalFaqs, PortalNav, PortalRates, PortalSolar } from './types';
+import type { PortalFaqs, PortalNav, PortalRates, PortalSolar, PortalSupport } from './types';
 
 export function getPortalNav(): Promise<PortalNav> {
   return apiGet<PortalNav>('/portal/nav');
@@ -15,4 +15,8 @@ export function getPortalSolar(kw: number): Promise<PortalSolar> {
 
 export function getPortalFaqs(): Promise<PortalFaqs> {
   return apiGet<PortalFaqs>('/portal/faqs');
+}
+
+export function getPortalSupport(): Promise<PortalSupport> {
+  return apiGet<PortalSupport>('/portal/support');
 }

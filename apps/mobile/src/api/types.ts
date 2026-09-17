@@ -81,8 +81,28 @@ export interface OutagePin {
   lng: number;
 }
 
+/** Severity drives the marker colour and the status pill. */
+export type OutageSeverity = 'major' | 'minor' | 'planned' | 'restoring';
+
+export interface OutageEvent {
+  id: string;
+  /** Neighbourhood and cross streets. */
+  area: string;
+  cause: string;
+  customers: number;
+  crews: number;
+  /** Estimated restoration, or "Power restored" once it is back. */
+  eta: string;
+  status: string;
+  severity: OutageSeverity;
+  lat: number;
+  lng: number;
+}
+
 export interface OutageMap {
   pins: OutagePin[];
+  /** Active events behind the pins — the portal plots and lists these. */
+  events: OutageEvent[];
   /** The service address the pins are arranged around. */
   center: { lat: number; lng: number };
   caption: string;
@@ -203,6 +223,29 @@ export interface OpsImpactGroup {
 export interface OpsImpact {
   note: string;
   groups: OpsImpactGroup[];
+}
+
+export interface SupportChannel {
+  id: string;
+  name: string;
+  detail: string;
+  /** What to do: a number, an address, or a call to action. */
+  action: string;
+  kind: 'phone' | 'email' | 'office';
+  /** The emergency line, which is set apart from the rest. */
+  urgent: boolean;
+}
+
+export interface SupportTopic {
+  id: string;
+  title: string;
+  body: string;
+}
+
+export interface PortalSupport {
+  channels: SupportChannel[];
+  topics: SupportTopic[];
+  note: string;
 }
 
 export interface RetrievedChunk {

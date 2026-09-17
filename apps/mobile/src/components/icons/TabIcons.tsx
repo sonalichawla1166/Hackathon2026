@@ -145,3 +145,47 @@ export function DemandTabIcon({ size = 22, color = 'currentColor', active }: Ico
     </Svg>
   );
 }
+
+// ── Public portal ────────────────────────────────────────────────────────────
+
+/** Price tag — the rate plan comparison. */
+export function RatesTabIcon({ size = 22, color = 'currentColor', active }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" stroke={color} strokeWidth={stroke(active)} {...BASE}>
+      <Path d="M3.6 12.6V4.4a.8.8 0 0 1 .8-.8h8.2l7.4 7.4a1.6 1.6 0 0 1 0 2.3l-6.1 6.1a1.6 1.6 0 0 1-2.3 0z" />
+      <Circle cx={8.1} cy={8.1} r={1.5} />
+    </Svg>
+  );
+}
+
+/** Sun over a panel — the solar and net metering section. */
+export function SolarTabIcon({ size = 22, color = 'currentColor', active }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" stroke={color} strokeWidth={stroke(active)} {...BASE}>
+      <Circle cx={12} cy={8.4} r={3.4} />
+      <Path d="M12 1.8v1.6M12 13.4V15M18.6 8.4H17M7 8.4H5.4M16.7 3.7l-1.1 1.1M8.4 12l-1.1 1.1M16.7 13.1l-1.1-1.1M8.4 4.8 7.3 3.7" />
+      <Path d="M5.2 20.6h13.6M7.4 17.4h9.2" />
+    </Svg>
+  );
+}
+
+/** Struck-through bolt — an interruption to supply. */
+export function OutageTabIcon({ size = 22, color = 'currentColor', active }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" stroke={color} strokeWidth={stroke(active)} {...BASE}>
+      <Path d="M13.4 2.6 6.2 13.2h4.9l-1.5 8.2 7.2-10.6h-4.9z" />
+      <Path d="M3.4 3.4 20.6 20.6" />
+    </Svg>
+  );
+}
+
+/** Headset — the support desk. */
+export function SupportTabIcon({ size = 22, color = 'currentColor', active }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" stroke={color} strokeWidth={stroke(active)} {...BASE}>
+      <Path d="M4.2 15.4v-3.2a7.8 7.8 0 0 1 15.6 0v3.2" />
+      <Path d="M19.8 16.2a2.2 2.2 0 0 1-2.2 2.2h-1.2v-4.6h1.2a2.2 2.2 0 0 1 2.2 2.2zM4.2 16.2a2.2 2.2 0 0 0 2.2 2.2h1.2v-4.6H6.4a2.2 2.2 0 0 0-2.2 2.2z" />
+      <Path d="M19.8 18.4v.6a2.4 2.4 0 0 1-2.4 2.4H12" />
+    </Svg>
+  );
+}

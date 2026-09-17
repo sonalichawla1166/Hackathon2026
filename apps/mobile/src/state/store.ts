@@ -13,6 +13,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export type Surface = 'app' | 'portal' | 'ops' | 'copilot' | 'sales';
 
+/** Sections of the public portal, in sidebar order. */
+export type PortalView = 'rates' | 'solar' | 'outages' | 'support';
+
+export const PORTAL_TITLES: Record<PortalView, string> = {
+  rates: 'Rate plans',
+  solar: 'Solar and net metering',
+  outages: 'Outages',
+  support: 'Support',
+};
+
 /** Who is signed in. Filled at login and shown in the profile menu. */
 export interface SessionUser {
   name: string;
@@ -79,6 +89,8 @@ interface UiState {
 
   portalUsage: number;
   setPortalUsage: (kwh: number) => void;
+  portalView: PortalView;
+  setPortalView: (v: PortalView) => void;
 
   reportPicks: number[];
   toggleReportPick: (i: number) => void;
@@ -138,6 +150,8 @@ export const useUiStore = create<UiState>()(
 
       portalUsage: 1240,
       setPortalUsage: (portalUsage) => set({ portalUsage }),
+      portalView: 'rates',
+      setPortalView: (portalView) => set({ portalView }),
 
       reportPicks: [],
       toggleReportPick: (i) =>

@@ -12,16 +12,17 @@ export function OutageMapWidget() {
   const { colors } = useTheme();
   const { data, isPending, isError, error, refetch } = useOutageMap();
 
-  // No "you are here" on the public portal — nobody is signed in.
+  // The real events, not the abstract pins — and no "you are here", since
+  // nobody is signed in on the public portal.
   const markers: MapMarker[] =
-    data?.pins.map((p, i) => ({
-      id: `pin-${i}`,
-      lat: p.lat,
-      lng: p.lng,
-      color: p.danger ? colors.danger : colors.accent,
+    data?.events.map((e) => ({
+      id: e.id,
+      lat: e.lat,
+      lng: e.lng,
+      color: e.severity === 'major' ? colors.danger : e.severity === 'minor' ? colors.cta : colors.accent,
       kind: 'dot' as const,
-      size: p.d,
-      label: p.danger ? 'Confirmed outage' : 'Reported fault',
+      size: 14 + Math.round(Math.sqrt(e.customers) * 0.6),
+      label: `${e.area} — ${e.customers.toLocaleString('en-US')} customers`,
       selectable: false,
     })) ?? [];
 

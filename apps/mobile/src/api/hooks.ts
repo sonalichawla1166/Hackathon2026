@@ -17,6 +17,7 @@ import * as portalApi from './portal';
 import * as programsApi from './programs';
 import * as salesApi from './sales';
 import * as simulateApi from './simulate';
+import { withOutageCoords } from './geo';
 import type {
   AnomaliesResult,
   CopilotCall,
@@ -104,7 +105,13 @@ export function useToggleEnroll() {
 // ---- Outages ------------------------------------------------------------------
 
 export function useOutageMap() {
-  return useQuery({ queryKey: ['outages', 'map'], queryFn: outagesApi.getOutageMap });
+  return useQuery({
+    queryKey: ['outages', 'map'],
+    queryFn: outagesApi.getOutageMap,
+    // Fill in coordinates once, here, so no screen has to cope with a pin that
+    // has no position or a response with no centre.
+    select: withOutageCoords,
+  });
 }
 
 export function useReportOutage() {
@@ -141,6 +148,10 @@ export function usePortalSolar(kw: number) {
 
 export function usePortalFaqs() {
   return useQuery({ queryKey: ['portal', 'faqs'], queryFn: portalApi.getPortalFaqs });
+}
+
+export function usePortalSupport() {
+  return useQuery({ queryKey: ['portal', 'support'], queryFn: portalApi.getPortalSupport });
 }
 
 // ---- Ops: predictive maintenance ---------------------------------------------------

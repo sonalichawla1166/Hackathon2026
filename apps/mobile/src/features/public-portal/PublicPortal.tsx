@@ -1,20 +1,26 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, ScrollView, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useUiStore } from '@/state/store';
-import { usePortalNav, usePortalRates, usePortalSolar } from '@/api/hooks';
-import { makeStyles, radius, useTheme } from '@/theme';
+import { PortalView, PORTAL_TITLES, useUiStore } from '@/state/store';
+import { usePortalNav } from '@/api/hooks';
+import { makeStyles, radius, useTheme, useIsDesktop } from '@/theme';
 import { fontFamily } from '@/theme/typography';
 import { CgInfinityLogo } from '@/components/brand/CgInfinityLogo';
 import { PageWash } from '@/components/ui/PageWash';
 import { ProfileMenu } from '@/components/ui/ProfileMenu';
-import { RangeSlider } from '@/components/ui/RangeSlider';
-import { LoadingState, ErrorState } from '@/components/ui/AsyncState';
-import { RatePlanCards } from './RatePlanCards';
+import { ScreenTransition } from '@/components/ui/ScreenTransition';
+import { SurfaceHeader } from '@/components/navigation/SurfaceHeader';
+import { AppSidebar, SidebarItem } from '@/components/navigation/AppSidebar';
+import { RatesTabIcon, SolarTabIcon, OutageTabIcon, SupportTabIcon } from '@/components/icons/TabIcons';
+import { hiddenScrollbar } from '@/components/ui/scroll';
+
 import { FaqAccordion } from './FaqAccordion';
 import { AskPanel } from './AskPanel';
 import { OutageMapWidget } from './OutageMapWidget';
-import { hiddenScrollbar } from '@/components/ui/scroll';
+import { RatesSection, UsageCard, RatePlanCardsSection } from './sections/RatesSection';
+import { SolarSection, SolarCard } from './sections/SolarSection';
+import { OutagesSection } from './sections/OutagesSection';
+import { SupportSection } from './sections/SupportSection';
 
 /**
  * Public portal surface — a marketing/self-service page at conedison.com,
@@ -22,17 +28,76 @@ import { hiddenScrollbar } from '@/components/ui/scroll';
  * No account needed: a usage slider prices the three residential rate
  * plans, a solar comparison, an FAQ accordion and a read-only "Ask
  * OneGridAI" side panel that shares chat state with the customer app.
+ *
+ * On a desktop-width window it takes the shell the other surfaces use — a
+ * header across the top and the shared full-height sidebar down the left,
+ * splitting the page into Rates, Solar, Outages and Support. Narrower than
+ * that it stays the single scrolling marketing page it was built as.
  */
 export function PublicPortal() {
   const styles = useStyles();
+  const desktop = useIsDesktop();
+  return <View style={styles.fill}>{desktop ? <PortalWide /> : <PortalCompact />}</View>;
+}
+
+const PORTAL_SIDEBAR: readonly SidebarItem<PortalView>[] = [
+  { key: 'rates', label: 'Rates', meta: 'Compare every plan', Icon: RatesTabIcon },
+  { key: 'solar', label: 'Solar', meta: 'Model an array', Icon: SolarTabIcon },
+  { key: 'outages', label: 'Outages', meta: 'Live map and events', Icon: OutageTabIcon },
+  { key: 'support', label: 'Support', meta: 'Reach a person', Icon: SupportTabIcon },
+];
+
+const PORTAL_PROFILE_DETAILS = [
+  { label: 'Utility', value: 'Con Edison' },
+  { label: 'Access', value: 'Public self-service' },
+] as const;
+
+/** Desktop portal: header, sidebar, one section at a time. */
+function PortalWide() {
+  const styles = useStyles();
+  const portalView = useUiStore((s) => s.portalView);
+  const setPortalView = useUiStore((s) => s.setPortalView);
+  const [collapsed, setCollapsed] = useState(false);
+
+  const active = (
+    <ScreenTransition key={portalView}>
+      {portalView === 'rates' && <RatesSection compact={false} />}
+      {portalView === 'solar' && <SolarSection compact={false} />}
+      {portalView === 'outages' && <OutagesSection compact={false} />}
+      {portalView === 'support' && <SupportSection compact={false} />}
+    </ScreenTransition>
+  );
+
   return (
-    <View style={styles.fill}>
-      <PortalBody />
+    <View style={styles.shell}>
+      <PageWash />
+      <SurfaceHeader
+        eyebrow="Con Edison · Powered by OneGridAI"
+        title={PORTAL_TITLES[portalView]}
+        profileDetails={PORTAL_PROFILE_DETAILS}
+        showAccountControls={false}
+      />
+
+      <View style={styles.wideBody}>
+        <AppSidebar
+          items={PORTAL_SIDEBAR}
+          current={portalView}
+          onPick={setPortalView}
+          collapsed={collapsed}
+          onToggleCollapsed={() => setCollapsed((c) => !c)}
+          footnote="Prices are modelled against the filed Con Edison tariff. Indicative, not a quotation."
+        />
+
+        <ScrollView style={styles.scroll} contentContainerStyle={styles.wideContent} {...hiddenScrollbar}>
+          <View style={styles.wideColumn}>{active}</View>
+        </ScrollView>
+      </View>
     </View>
   );
 }
 
-function PortalBody() {
+/** Narrow portal, unchanged: one scrolling marketing page. */
+function PortalCompact() {
   const styles = useStyles();
   const { width } = useWindowDimensions();
   const compact = width < 900;
@@ -59,11 +124,6 @@ function PortalBody() {
     </View>
   );
 }
-
-const PORTAL_PROFILE_DETAILS = [
-  { label: 'Utility', value: 'Con Edison' },
-  { label: 'Access', value: 'Public self-service' },
-] as const;
 
 function TopNav({ compact }: { compact: boolean }) {
   const styles = useStyles();
@@ -115,76 +175,17 @@ function Hero({ compact }: { compact: boolean }) {
   );
 }
 
-function UsageCard() {
-  const styles = useStyles();
-  const portalUsage = useUiStore((s) => s.portalUsage);
-  const setPortalUsage = useUiStore((s) => s.setPortalUsage);
-  const label = `${portalUsage.toLocaleString('en-US')} kWh`;
-
-  return (
-    <View style={styles.usageCard}>
-      <View style={styles.usageHeader}>
-        <Text style={styles.usageLabel}>Your monthly usage</Text>
-        <Text style={styles.usageValue}>{label}</Text>
-      </View>
-      <RangeSlider value={portalUsage} minimumValue={200} maximumValue={2600} step={20} onValueChange={setPortalUsage} />
-      <View style={styles.usageEnds}>
-        <Text style={styles.usageEndLabel}>200 kWh</Text>
-        <Text style={styles.usageEndLabel}>2,600 kWh</Text>
-      </View>
-    </View>
-  );
-}
-
-function RatePlanCardsSection({ compact }: { compact: boolean }) {
-  const portalUsage = useUiStore((s) => s.portalUsage);
-  const { data, isPending, isError, error, refetch } = usePortalRates(portalUsage);
-
-  if (isPending) return <LoadingState label="Pricing rate plans…" inline />;
-  if (isError) return <ErrorState error={error} onRetry={refetch} />;
-
-  return <RatePlanCards plans={data.plans} compact={compact} />;
-}
-
-function SolarCard() {
-  const styles = useStyles();
-  const solarKw = useUiStore((s) => s.solarKw);
-  const setSolarKw = useUiStore((s) => s.setSolarKw);
-  const { data, isPending, isError, error, refetch } = usePortalSolar(solarKw);
-
-  return (
-    <View style={styles.solarCard}>
-      <View style={styles.solarHeader}>
-        <Text style={styles.solarTitle}>Add solar to the comparison</Text>
-        <Text style={styles.solarNote}>{data ? data.note : 'Generation modelled from PVWatts v8 for ZIP 10036'}</Text>
-      </View>
-      <View style={styles.solarBody}>
-        <View style={styles.solarSlider}>
-          <View style={styles.solarSliderHeader}>
-            <Text style={styles.solarSliderLabel}>Array size</Text>
-            <Text style={styles.solarSliderLabel}>{solarKw} kW</Text>
-          </View>
-          <RangeSlider value={solarKw} minimumValue={0} maximumValue={12} step={0.5} onValueChange={setSolarKw} />
-        </View>
-        {isPending && <LoadingState label="Modelling your roof…" inline />}
-        {isError && <ErrorState error={error} onRetry={refetch} />}
-        {data &&
-          data.stats.map((s) => (
-            <View key={s.k} style={styles.stat}>
-              <Text style={styles.statLabel}>{s.k}</Text>
-              <Text style={styles.statValue}>{s.v}</Text>
-            </View>
-          ))}
-      </View>
-    </View>
-  );
-}
-
 const useStyles = makeStyles((t) => ({
   fill: { flex: 1, width: '100%' },
   scroll: { flex: 1, width: '100%', backgroundColor: 'transparent' },
   shell: { flex: 1, backgroundColor: t.colors.page },
   scrollContent: { flexGrow: 1, paddingBottom: 24 },
+
+  // Desktop shell: the sidebar is flush to the window edges, the page beside
+  // it carries the gutter.
+  wideBody: { flex: 1, flexDirection: 'row', width: '100%' },
+  wideContent: { flexGrow: 1, alignItems: 'center', paddingHorizontal: 30, paddingTop: 24, paddingBottom: 34 },
+  wideColumn: { width: '100%', maxWidth: 1180 },
 
   nav: {
     backgroundColor: t.colors.primary,
@@ -215,23 +216,4 @@ const useStyles = makeStyles((t) => ({
   rail: { gap: 20 },
   railWide: { width: 330 },
   railCompact: { width: '100%' },
-
-  usageCard: { backgroundColor: t.colors.surfaceMuted, borderRadius: radius.md, padding: 22 },
-  usageHeader: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' },
-  usageLabel: { fontFamily: fontFamily.heading, fontSize: 15, color: t.colors.textHeading },
-  usageValue: { fontFamily: fontFamily.heading, fontSize: 26, color: t.colors.textHeading },
-  usageEnds: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 5 },
-  usageEndLabel: { fontFamily: fontFamily.body, fontSize: 11, color: t.colors.textMuted },
-
-  solarCard: { backgroundColor: t.colors.surfaceCard, borderWidth: 2, borderColor: t.colors.surfaceMuted, borderRadius: radius.md, padding: 22 },
-  solarHeader: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', justifyContent: 'space-between', gap: 16 },
-  solarTitle: { fontFamily: fontFamily.heading, fontSize: 17, color: t.colors.textHeading },
-  solarNote: { fontFamily: fontFamily.body, fontSize: 12.5, color: t.colors.accent },
-  solarBody: { flexDirection: 'row', flexWrap: 'wrap', gap: 26, marginTop: 18, alignItems: 'center' },
-  solarSlider: { flex: 1, minWidth: 230 },
-  solarSliderHeader: { flexDirection: 'row', justifyContent: 'space-between' },
-  solarSliderLabel: { fontFamily: fontFamily.bodyBold, fontSize: 13, color: t.colors.textHeading },
-  stat: {},
-  statLabel: { fontFamily: fontFamily.body, fontSize: 11, color: t.colors.textMuted },
-  statValue: { fontFamily: fontFamily.heading, fontSize: 21, color: t.colors.textHeading, marginTop: 4 },
 }));

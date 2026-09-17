@@ -169,6 +169,9 @@ export function buildMapHtml(init: MapInit): string {
     markerLayer.clearLayers();
     byId = {};
     (list || []).forEach(function (m) {
+      // One marker with a missing coordinate would throw and take every other
+      // marker down with it, which looks like a map with no data at all.
+      if (!isFinite(m.lat) || !isFinite(m.lng)) return;
       var marker = L.marker([m.lat, m.lng], {
         icon: iconFor(m, m.id === selectedId),
         interactive: m.selectable !== false,

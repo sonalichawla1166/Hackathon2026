@@ -41,7 +41,11 @@ export function ErrorState({ error, onRetry }: { error: unknown; onRetry?: () =>
   const styles = useStyles();
   const message =
     error instanceof ApiError
-      ? `Backend returned ${error.status}. Is it running?`
+      ? error.status === 404
+        // The server answered, so it is up — it just does not have this route.
+        // Almost always an API process still running a previous build.
+        ? 'This endpoint is missing (404). The API is probably running an older build — restart it.'
+        : `Backend returned ${error.status}. Is it running?`
       : error instanceof Error
         ? error.message
         : 'Something went wrong.';

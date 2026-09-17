@@ -4,7 +4,7 @@ from datetime import timedelta
 
 from fastapi import APIRouter, Query
 
-from ..data import FAQ_DATA, PORTAL_NAV
+from ..data import FAQ_DATA, PORTAL_NAV, SUPPORT_CHANNELS, SUPPORT_TOPICS
 from ..real import store, tariff_engine
 from ..real.config import DEMO_CUSTOMER_ID
 from ..real.db import SessionLocal
@@ -40,6 +40,15 @@ def _scaled_readings(usage_target: float):
 @router.get("/portal/nav")
 def get_nav():
     return {"nav": PORTAL_NAV, "poweredBy": "Powered by OneGridAI"}
+
+
+@router.get("/portal/support")
+def get_support():
+    return {
+        "channels": SUPPORT_CHANNELS,
+        "topics": SUPPORT_TOPICS,
+        "note": "Outside the emergency line, most billing and service questions are answered fastest on the phone lines above.",
+    }
 
 
 @router.get("/portal/rates")

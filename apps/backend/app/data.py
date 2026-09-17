@@ -323,6 +323,102 @@ def _with_coords(pin: dict) -> dict:
 
 OUTAGE_PINS = [_with_coords(p) for p in _OUTAGE_LAYOUT]
 
+# Active events behind the outage map. Customers and crews here are what the
+# portal's summary line is counted from, so the two can never disagree.
+OUTAGE_EVENTS = [
+    {
+        "id": "EVT-4411", "area": "Hell's Kitchen \u00b7 W 48th to W 52nd",
+        "cause": "Underground cable fault", "customers": 812, "crews": 2,
+        "eta": "4:40pm", "status": "Crew on site", "severity": "major",
+        "lat": 40.7649, "lng": -73.9958,
+    },
+    {
+        "id": "EVT-4417", "area": "Midtown West \u00b7 W 42nd to W 45th",
+        "cause": "Transformer overload", "customers": 486, "crews": 1,
+        "eta": "5:15pm", "status": "Crew on site", "severity": "major",
+        "lat": 40.7581, "lng": -73.9908,
+    },
+    {
+        "id": "EVT-4422", "area": "Clinton \u00b7 10th Ave at W 46th",
+        "cause": "Storm damage to overhead line", "customers": 344, "crews": 1,
+        "eta": "6:00pm", "status": "Crew dispatched", "severity": "major",
+        "lat": 40.7607, "lng": -73.9944,
+    },
+    {
+        "id": "EVT-4430", "area": "Times Square \u00b7 W 44th at 7th Ave",
+        "cause": "Planned maintenance", "customers": 190, "crews": 1,
+        "eta": "3:30pm", "status": "Scheduled", "severity": "planned",
+        "lat": 40.7580, "lng": -73.9855,
+    },
+    {
+        "id": "EVT-4436", "area": "Garment District \u00b7 W 39th at 8th Ave",
+        "cause": "Voltage regulator fault", "customers": 148, "crews": 1,
+        "eta": "5:45pm", "status": "Crew dispatched", "severity": "minor",
+        "lat": 40.7539, "lng": -73.9925,
+    },
+    {
+        "id": "EVT-4441", "area": "Columbus Circle \u00b7 W 58th at 8th Ave",
+        "cause": "Feeder trip, auto-reclosed", "customers": 96, "crews": 0,
+        "eta": "Power restored", "status": "Restoring", "severity": "restoring",
+        "lat": 40.7679, "lng": -73.9822,
+    },
+    {
+        "id": "EVT-4448", "area": "Chelsea \u00b7 W 28th at 9th Ave",
+        "cause": "Network protector replaced", "customers": 64, "crews": 0,
+        "eta": "Power restored", "status": "Restoring", "severity": "restoring",
+        "lat": 40.7492, "lng": -73.9990,
+    },
+]
+
+# Support desk, for the portal's Support section. Numbers are in the 555-01xx
+# range reserved for fiction — this is a demo, not a real contact list.
+SUPPORT_CHANNELS = [
+    {
+        "id": "emergency", "name": "Emergency and gas leaks", "kind": "phone", "urgent": True,
+        "detail": "Open 24 hours, every day. Leave the building first, then call.",
+        "action": "1-800-555-0111",
+    },
+    {
+        "id": "outage", "name": "Report a power outage", "kind": "phone", "urgent": False,
+        "detail": "Automated line, no hold time. Have your account number ready.",
+        "action": "1-800-555-0123",
+    },
+    {
+        "id": "billing", "name": "Billing and account help", "kind": "phone", "urgent": False,
+        "detail": "Monday to Friday, 8am to 6pm Eastern.",
+        "action": "1-800-555-0144",
+    },
+    {
+        "id": "email", "name": "Email support", "kind": "email", "urgent": False,
+        "detail": "We reply within two business days.",
+        "action": "support@coned.example",
+    },
+    {
+        "id": "office", "name": "Walk-in service centre", "kind": "office", "urgent": False,
+        "detail": "Monday to Friday, 9am to 4pm. Bring photo ID and a recent bill.",
+        "action": "4 Irving Place, New York",
+    },
+]
+
+SUPPORT_TOPICS = [
+    {
+        "id": "start-stop", "title": "Start, stop or move service",
+        "body": "Three business days' notice for a start, two for a stop. You need the service address, a move date and one form of ID. Nothing is prorated on the day itself.",
+    },
+    {
+        "id": "budget", "title": "Level out an uneven bill",
+        "body": "Budget billing averages the last twelve months and re-trues every quarter. It changes what you pay each month, not what you owe over the year.",
+    },
+    {
+        "id": "arrears", "title": "Trouble paying a bill",
+        "body": "A payment arrangement splits a balance over up to twelve months with no interest. Setting one up stops collection activity while it is kept.",
+    },
+    {
+        "id": "meter", "title": "Question a meter reading",
+        "body": "Interval data is available for the last 24 months. If a read looks wrong we will send a technician; there is no charge when the meter is at fault.",
+    },
+]
+
 PAY_OPTIONS = [
     {"label": "Visa ending 4417", "detail": "Default card"},
     {"label": "Bank account ending 8820", "detail": "No processing fee"},
