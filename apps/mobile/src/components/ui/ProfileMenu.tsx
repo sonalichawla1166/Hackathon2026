@@ -54,9 +54,10 @@ export function ProfileMenu({ onInverse = false, details = [], showAccountContro
       { label: 'Workspace', value: session ? SURFACE_LABELS[session] : '—' },
       { label: 'Organisation', value: 'CG Infinity · OneGridAI' },
       { label: 'Signed in with', value: user?.method === 'google' ? 'Google' : 'Email + passcode' },
+      ...(user?.viaAdmin ? [{ label: 'Set up by', value: 'Admin (sign in as)' }] : []),
       ...details,
     ],
-    [session, user?.method, details]
+    [session, user?.method, user?.viaAdmin, details]
   );
 
   return (

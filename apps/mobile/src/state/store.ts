@@ -23,6 +23,11 @@ export interface SessionUser {
   method: 'google' | 'passcode';
   /** True for the stand-in identity used when Google is not configured. */
   isDemo?: boolean;
+  /** True when the admin account picked this workspace on the user's behalf
+   * (see `LoginScreen.tsx`'s account picker) rather than the user signing in
+   * directly — the profile menu flags this so it never looks like a real
+   * session. */
+  viaAdmin?: boolean;
 }
 
 /** Display name for each workspace, used by the header and profile menu. */

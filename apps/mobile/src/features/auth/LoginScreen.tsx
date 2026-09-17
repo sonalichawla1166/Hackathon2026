@@ -32,6 +32,14 @@ const MIN_PASSWORD_LENGTH = 6;
 
 type Mode = 'login' | 'signup';
 
+/** A verified admin, waiting to pick which surface to view — the only
+ * situation where a workspace is still chosen after credentials are already
+ * confirmed, rather than fixed on the account. */
+interface PendingAdmin {
+  token: string;
+  email: string;
+}
+
 function toSessionUser(profile: GoogleProfile): SessionUser {
   return { name: profile.name, email: profile.email, picture: profile.picture, method: 'google', isDemo: profile.isDemo };
 }
@@ -60,6 +68,10 @@ export function LoginScreen() {
   const [attempted, setAttempted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [googleAccount, setGoogleAccount] = useState<GoogleProfile | null>(null);
+  // Set once a login response comes back for the seeded admin account —
+  // credentials are already verified at that point, so the picker below only
+  // ever chooses a workspace, never re-authenticates.
+  const [pendingAdmin, setPendingAdmin] = useState<PendingAdmin | null>(null);
 
   const trimmedEmail = email.trim();
   const isEmailValid = EMAIL_RE.test(trimmedEmail);
@@ -67,8 +79,10 @@ export function LoginScreen() {
   const credentialsFilled = isEmailValid && isPasswordValid;
   // A Google sign-in stands in for the email + passcode pair (login mode only).
   const identityReady = credentialsFilled || googleAccount !== null;
+  // Signup fixes the account's workspace right away, so it needs a role too;
+  // a plain login no longer does — the account already has one on file.
   const canSubmit =
-    mode === 'signup' ? credentialsFilled && !submitting : identityReady && role !== null && !submitting;
+    mode === 'signup' ? credentialsFilled && role !== null && !submitting : identityReady && !submitting;
 
   const pickRole = useCallback((next: Surface) => {
     setRole(next);
@@ -81,7 +95,17 @@ export function LoginScreen() {
     setNoticeIsError(false);
     setAttempted(false);
     setPassword('');
+    setRole(null);
+    setPendingAdmin(null);
   }, []);
+
+  const finishAdminSignIn = useCallback(
+    (chosen: Surface) => {
+      if (!pendingAdmin) return;
+      login(chosen, { name: 'Admin', email: pendingAdmin.email, method: 'passcode', viaAdmin: true }, pendingAdmin.token);
+    },
+    [pendingAdmin, login]
+  );
 
   const submit = useCallback(async () => {
     setAttempted(true);
@@ -92,14 +116,20 @@ export function LoginScreen() {
         setNoticeIsError(true);
         return;
       }
+      if (!role) {
+        setNoticeIsError(true);
+        setNotice('Pick which workspace this account opens into.');
+        return;
+      }
       setSubmitting(true);
       setNotice(null);
       try {
-        await signupRequest(trimmedEmail, password);
+        await signupRequest(trimmedEmail, password, role);
         setNoticeIsError(false);
         setNotice('Account created — log in below.');
         setPassword('');
         setAttempted(false);
+        setRole(null);
         setMode('login');
       } catch (err) {
         setNoticeIsError(true);
@@ -113,12 +143,12 @@ export function LoginScreen() {
     }
 
     // login mode
-    if (!role) {
-      setNoticeIsError(true);
-      setNotice('Pick a workspace to continue.');
-      return;
-    }
     if (googleAccount) {
+      if (!role) {
+        setNoticeIsError(true);
+        setNotice('Pick a workspace to continue.');
+        return;
+      }
       login(role, toSessionUser(googleAccount), null);
       return;
     }
@@ -130,8 +160,12 @@ export function LoginScreen() {
     setSubmitting(true);
     setNotice(null);
     try {
-      const res = await loginRequest(trimmedEmail, password, role);
-      login(role, { name: nameFromEmail(trimmedEmail), email: res.email, method: 'passcode' }, res.token);
+      const res = await loginRequest(trimmedEmail, password);
+      if (res.isAdmin) {
+        setPendingAdmin({ token: res.token, email: res.email });
+      } else {
+        login(res.role as Surface, { name: nameFromEmail(trimmedEmail), email: res.email, method: 'passcode' }, res.token);
+      }
     } catch (err) {
       setNoticeIsError(true);
       setNotice(
@@ -168,6 +202,10 @@ export function LoginScreen() {
   const emailInvalid = attempted && !isEmailValid;
   const passwordInvalid = attempted && mode === 'signup' ? !isPasswordValid : attempted && !googleAccount && !isPasswordValid;
 
+  // Google (post-auth) and signup both still need a workspace picked; a plain
+  // email/passcode login never shows this — the account already has one.
+  const showRolePicker = mode === 'signup' || (mode === 'login' && googleAccount !== null);
+
   return (
     <View style={styles.root}>
       <AuthBackdrop />
@@ -185,108 +223,136 @@ export function LoginScreen() {
             showsVerticalScrollIndicator={false}
           >
             <View style={[styles.card, compact && styles.cardCompact]}>
-              <Eyebrow style={styles.eyebrow}>Secure sign-in</Eyebrow>
-              <H1 style={styles.title}>{mode === 'login' ? 'Welcome back' : 'Create your account'}</H1>
-              <BodyText style={styles.subtitle}>
-                {mode === 'login'
-                  ? "One AI layer, five surfaces. Enter your details, then pick the workspace you're in today."
-                  : 'Set up your account, then sign in and pick the workspace you\'re in.'}
-              </BodyText>
-
-              <View style={styles.fields}>
-                <AuthField
-                  value={email}
-                  onChangeText={(next) => {
-                    setEmail(next);
-                    setGoogleAccount(null);
-                  }}
-                  placeholder="Enter email / phone no"
-                  autoCapitalize="none"
-                  autoComplete="email"
-                  keyboardType="email-address"
-                  textContentType="emailAddress"
-                  returnKeyType="next"
-                  invalid={emailInvalid}
-                />
-                <AuthField
-                  value={password}
-                  onChangeText={setPassword}
-                  placeholder="Passcode"
-                  secure
-                  autoComplete="current-password"
-                  textContentType="password"
-                  returnKeyType="go"
-                  onSubmitEditing={submit}
-                  invalid={passwordInvalid}
-                />
-              </View>
-
-              {mode === 'login' && (
-                <Pressable
-                  onPress={() => setNotice('Password help is on the roadmap — use Google sign-in for now.')}
-                  hitSlop={6}
-                  accessibilityRole="link"
-                  style={styles.helpLink}
-                >
-                  <Text style={[styles.helpText, { color: colors.textBody }]}>Having trouble signing in?</Text>
-                </Pressable>
-              )}
-
-              {mode === 'login' && (
+              {pendingAdmin ? (
                 <>
-                  <Caption style={styles.sectionLabel}>Sign in as</Caption>
-                  <RoleSelector options={ROLES} value={role} onChange={pickRole} stacked={compact} />
+                  <Eyebrow style={styles.eyebrow}>Admin</Eyebrow>
+                  <H1 style={styles.title}>Sign in as…</H1>
+                  <BodyText style={styles.subtitle}>
+                    Signed in as {pendingAdmin.email}. Choose which workspace to view.
+                  </BodyText>
+
+                  <RoleSelector options={ROLES} value={role} onChange={(next) => finishAdminSignIn(next)} stacked={compact} />
+
+                  <Pressable
+                    onPress={() => {
+                      setPendingAdmin(null);
+                      setPassword('');
+                    }}
+                    hitSlop={6}
+                    accessibilityRole="link"
+                    style={styles.helpLink}
+                  >
+                    <Text style={[styles.helpText, { color: colors.textBody }]}>‹ Back to sign in</Text>
+                  </Pressable>
                 </>
-              )}
-
-              {notice ? (
-                <View
-                  style={[
-                    styles.notice,
-                    {
-                      backgroundColor: withAlpha(noticeIsError ? colors.danger : colors.brand, 0.14),
-                      borderColor: withAlpha(noticeIsError ? colors.danger : colors.brand, 0.4),
-                    },
-                  ]}
-                >
-                  <Caption color={colors.textBody}>{notice}</Caption>
-                </View>
-              ) : null}
-
-              <Button variant="cta" size="md" block disabled={!canSubmit} onPress={submit} style={styles.submit}>
-                {mode === 'login'
-                  ? submitting
-                    ? 'Signing in…'
-                    : 'Sign in'
-                  : submitting
-                    ? 'Creating account…'
-                    : 'Create account'}
-              </Button>
-
-              {mode === 'login' && (
+              ) : (
                 <>
-                  <View style={styles.dividerRow}>
-                    <View style={[styles.rule, { backgroundColor: colors.borderMuted }]} />
-                    <Caption style={styles.dividerLabel}>Or sign in with</Caption>
-                    <View style={[styles.rule, { backgroundColor: colors.borderMuted }]} />
+                  <Eyebrow style={styles.eyebrow}>Secure sign-in</Eyebrow>
+                  <H1 style={styles.title}>{mode === 'login' ? 'Welcome back' : 'Create your account'}</H1>
+                  <BodyText style={styles.subtitle}>
+                    {mode === 'login'
+                      ? 'Sign in with your account — it knows which workspace it opens into.'
+                      : "Set up your account and pick which workspace it opens into. Only the admin account can switch between workspaces."}
+                  </BodyText>
+
+                  <View style={styles.fields}>
+                    <AuthField
+                      value={email}
+                      onChangeText={(next) => {
+                        setEmail(next);
+                        setGoogleAccount(null);
+                      }}
+                      placeholder="Enter email / phone no"
+                      autoCapitalize="none"
+                      autoComplete="email"
+                      keyboardType="email-address"
+                      textContentType="emailAddress"
+                      returnKeyType="next"
+                      invalid={emailInvalid}
+                    />
+                    <AuthField
+                      value={password}
+                      onChangeText={setPassword}
+                      placeholder="Passcode"
+                      secure
+                      autoComplete="current-password"
+                      textContentType="password"
+                      returnKeyType="go"
+                      onSubmitEditing={submit}
+                      invalid={passwordInvalid}
+                    />
                   </View>
 
-                  <GoogleSignInButton label={googleLabel} onSuccess={onGoogleSuccess} onNotice={setNotice} />
+                  {mode === 'login' && (
+                    <Pressable
+                      onPress={() => setNotice('Password help is on the roadmap — use Google sign-in for now.')}
+                      hitSlop={6}
+                      accessibilityRole="link"
+                      style={styles.helpLink}
+                    >
+                      <Text style={[styles.helpText, { color: colors.textBody }]}>Having trouble signing in?</Text>
+                    </Pressable>
+                  )}
+
+                  {showRolePicker && (
+                    <>
+                      <Caption style={styles.sectionLabel}>
+                        {mode === 'signup' ? 'Workspace for this account' : 'Sign in as'}
+                      </Caption>
+                      <RoleSelector options={ROLES} value={role} onChange={pickRole} stacked={compact} />
+                    </>
+                  )}
+
+                  {notice ? (
+                    <View
+                      style={[
+                        styles.notice,
+                        {
+                          backgroundColor: withAlpha(noticeIsError ? colors.danger : colors.brand, 0.14),
+                          borderColor: withAlpha(noticeIsError ? colors.danger : colors.brand, 0.4),
+                        },
+                      ]}
+                    >
+                      <Caption color={colors.textBody}>{notice}</Caption>
+                    </View>
+                  ) : null}
+
+                  <Button variant="cta" size="md" block disabled={!canSubmit} onPress={submit} style={styles.submit}>
+                    {mode === 'login'
+                      ? submitting
+                        ? 'Signing in…'
+                        : 'Sign in'
+                      : submitting
+                        ? 'Creating account…'
+                        : 'Create account'}
+                  </Button>
+
+                  {mode === 'login' && (
+                    <>
+                      <View style={styles.dividerRow}>
+                        <View style={[styles.rule, { backgroundColor: colors.borderMuted }]} />
+                        <Caption style={styles.dividerLabel}>Or sign in with</Caption>
+                        <View style={[styles.rule, { backgroundColor: colors.borderMuted }]} />
+                      </View>
+
+                      <GoogleSignInButton label={googleLabel} onSuccess={onGoogleSuccess} onNotice={setNotice} />
+                    </>
+                  )}
+
+                  <View style={styles.footerRow}>
+                    <Caption>{mode === 'login' ? "Don't have an account?" : 'Already have an account?'}</Caption>
+                    <Pressable
+                      onPress={() => switchMode(mode === 'login' ? 'signup' : 'login')}
+                      hitSlop={6}
+                      accessibilityRole="link"
+                    >
+                      <Text style={[styles.footerLink, { color: colors.brandStrong }]}>
+                        {mode === 'login' ? 'Sign up' : 'Log in'}
+                      </Text>
+                    </Pressable>
+                  </View>
                 </>
               )}
-
-              <View style={styles.footerRow}>
-                <Caption>{mode === 'login' ? "Don't have an account?" : 'Already have an account?'}</Caption>
-                <Pressable
-                  onPress={() => switchMode(mode === 'login' ? 'signup' : 'login')}
-                  hitSlop={6}
-                  accessibilityRole="link"
-                >
-                  <Text style={[styles.footerLink, { color: colors.brandStrong }]}>
-                    {mode === 'login' ? 'Sign up' : 'Log in'}
-                  </Text>
-                </Pressable>
-              </View>
             </View>
 
             <Caption style={styles.copyright}>© {new Date().getFullYear()} CG Infinity · OneGridAI · Privacy policy</Caption>

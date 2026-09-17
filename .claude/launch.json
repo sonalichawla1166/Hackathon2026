@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "backend",
+      "runtimeExecutable": "/bin/sh",
+      "runtimeArgs": [
+        "-c",
+        "cd /Users/sonalichawla/Downloads/onegridai-repo/apps/backend && source .venv/bin/activate && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+      ],
+      "port": 8000
+    },
+    {
+      "name": "mobile-web",
+      "runtimeExecutable": "/bin/sh",
+      "runtimeArgs": [
+        "-c",
+        "cd /Users/sonalichawla/Downloads/onegridai-repo/apps/mobile && npx expo start --web --port 8091"
+      ],
+      "port": 8091
+    }
+  ]
+}
