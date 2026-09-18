@@ -26,6 +26,20 @@ def is_ready() -> bool:
         return False
 
 
+def _is_junk(text: str) -> bool:
+    """Table-of-contents pages from the tariff PDFs chunk into runs of dot
+    leaders ("Underestimated Bills ........ 95") that embed close to almost
+    any billing query but carry no answer. Drop them rather than let them
+    surface as 'evidence'."""
+    if not text:
+        return True
+    stripped = text.strip()
+    if len(stripped) < 40:
+        return True
+    dots = stripped.count(".")
+    return dots / len(stripped) > 0.15 or "....." in stripped
+
+
 def search(query: str, k: int = 4, utility: str | None = None) -> list[dict[str, Any]]:
     try:
         col = _collection()
@@ -33,7 +47,8 @@ def search(query: str, k: int = 4, utility: str | None = None) -> list[dict[str,
         return []
     where = {"utility": utility or settings.utility}
     try:
-        res = col.query(query_texts=[query], n_results=k, where=where)
+        # Over-fetch so the junk filter below still leaves k real results.
+        res = col.query(query_texts=[query], n_results=k * 3, where=where)
     except Exception:
         return []
     out: list[dict[str, Any]] = []
@@ -41,6 +56,8 @@ def search(query: str, k: int = 4, utility: str | None = None) -> list[dict[str,
     metas = (res.get("metadatas") or [[]])[0]
     dists = (res.get("distances") or [[]])[0]
     for text, meta, dist in zip(docs, metas, dists):
+        if _is_junk(text):
+            continue
         meta = meta or {}
         out.append({
             "text": text,
@@ -49,4 +66,6 @@ def search(query: str, k: int = 4, utility: str | None = None) -> list[dict[str,
             "doc_type": meta.get("doc_type"),
             "distance": dist,
         })
+        if len(out) >= k:
+            break
     return out

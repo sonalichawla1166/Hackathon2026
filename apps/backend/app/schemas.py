@@ -33,3 +33,7 @@ class KnockRequest(BaseModel):
 
 class StageRequest(BaseModel):
     stage: str
+
+
+class ActionToggleRequest(BaseModel):
+    action: str

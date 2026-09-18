@@ -89,7 +89,7 @@ export function OutageScreen() {
       </View>
 
       <View style={styles.footerRow}>
-        <Text style={styles.address}>412 W 47th St, Apt 6B{'\n'}Meter 8841-220-C</Text>
+        <Text style={styles.address}>{data.address}{'\n'}Meter {data.meter}</Text>
         <Button
           variant="cta"
           size="sm"

@@ -9,10 +9,13 @@ export interface DrFilter {
   label: string;
 }
 
+// Order must match apps/backend/app/real/dr_engine.py's FILTER_LABELS — each
+// is a real boolean computed from a customer's actual AMI-derived usage
+// features (program-eligibility fit), not an invented segment.
 export const DR_FILTERS: DrFilter[] = [
-  { label: 'EV owners' },
-  { label: 'Smart thermostat on record' },
+  { label: 'EV / overnight charging' },
+  { label: 'High peak-hour usage' },
   { label: 'Over 1,000 kWh a month' },
-  { label: 'Central AC detected' },
-  { label: 'Past event participants' },
+  { label: 'Summer-peaking load' },
+  { label: 'High seasonal swing (AC/heat)' },
 ];

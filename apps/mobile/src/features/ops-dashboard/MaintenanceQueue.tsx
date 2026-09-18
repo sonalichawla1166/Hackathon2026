@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Pressable, Text, ScrollView } from 'react-native';
 import { useUiStore } from '@/state/store';
-import { useDispatchAsset, useOpsAssets } from '@/api/hooks';
+import { useDispatchAsset, useOpsAssets, useSnoozeAsset } from '@/api/hooks';
 import { LinearGradient } from 'expo-linear-gradient';
 import { makeStyles, radius, useTheme } from '@/theme';
 import { fontFamily } from '@/theme/typography';
@@ -16,6 +16,7 @@ export function MaintenanceQueue({ compact }: { compact: boolean }) {
   const selectAsset = useUiStore((s) => s.selectAsset);
   const { data, isPending, isError, error, refetch } = useOpsAssets();
   const dispatchAsset = useDispatchAsset();
+  const snoozeAsset = useSnoozeAsset();
 
   if (isPending) return <LoadingState label="Loading maintenance queue…" />;
   if (isError) return <ErrorState error={error} onRetry={refetch} />;
@@ -59,7 +60,9 @@ export function MaintenanceQueue({ compact }: { compact: boolean }) {
       <View style={styles.heroText}>
         <Text style={styles.title}>Predictive maintenance queue</Text>
         <Text style={styles.subtitle}>
-          Ranked by failure probability over the next 30 days. 6 of 1,842 assets above the 0.60 threshold.
+          Ranked by failure probability over the next 30 days.{' '}
+          {kpis.find((k) => k.k === 'High-risk assets')?.v ?? '—'} of{' '}
+          {kpis.find((k) => k.k === 'Assets monitored')?.v ?? '—'} assets above the 0.60 threshold.
         </Text>
       </View>
       <View style={[styles.kpiRow, compact && styles.kpiRowCompact]}>
@@ -151,8 +154,14 @@ export function MaintenanceQueue({ compact }: { compact: boolean }) {
         >
           {sel.dispatchLabel}
         </Button>
-        <Button variant="outlineDark" size="sm" style={{ flex: 1 }}>
-          Snooze 7 days
+        <Button
+          variant="outlineDark"
+          size="sm"
+          style={{ flex: 1 }}
+          disabled={snoozeAsset.isPending || sel.snoozed}
+          onPress={() => snoozeAsset.mutate(sel.id)}
+        >
+          {sel.snoozeLabel ?? 'Snooze 7 days'}
         </Button>
       </View>
     </>

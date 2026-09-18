@@ -30,7 +30,7 @@ const OPS_SIDEBAR: readonly SidebarItem<OpsView>[] = [
 ];
 
 const OPS_PROFILE_DETAILS = [
-  { label: 'Region', value: 'Con Edison · Manhattan West' },
+  { label: 'Region', value: 'PSEG Long Island · Nassau/Suffolk' },
   { label: 'Access', value: 'Grid operations' },
 ] as const;
 

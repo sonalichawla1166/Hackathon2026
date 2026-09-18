@@ -22,7 +22,7 @@ export function SolarCard() {
     <View style={styles.solarCard}>
       <View style={styles.solarHeader}>
         <Text style={styles.solarTitle}>Add solar to the comparison</Text>
-        <Text style={styles.solarNote}>{data ? data.note : 'Generation modelled from PVWatts v8 for ZIP 10036'}</Text>
+        <Text style={styles.solarNote}>{data ? data.note : 'Generation modelled at ~1,250 kWh/kW/yr for Long Island'}</Text>
       </View>
       <View style={styles.solarBody}>
         <View style={styles.solarSlider}>
@@ -96,7 +96,7 @@ export function SolarSection({ compact }: { compact: boolean }) {
           ))}
         </View>
         <View style={styles.citeRow}>
-          <Citation label="Con Edison SC 1 Rider R · p. 18" />
+          <Citation label="PSEG Long Island · Rate 194 · Net Metering Rider" />
         </View>
       </View>
     </View>

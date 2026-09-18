@@ -20,19 +20,25 @@ export function ChatScreen() {
   const { data, isPending, isError, error, refetch } = useChat();
   const sendChat = useSendChat();
 
+  // Voice is web-only: the browser's built-in SpeechRecognition. Native
+  // recording (expo-av, then expo-audio) both hit "Cannot find native
+  // module" in this Expo Go build — that native module simply isn't bundled
+  // for this SDK, so there's no JS-only fix. Dictates straight into a sent
+  // message; `voice.supported` is only ever true on web (see useVoiceInput),
+  // so this is a no-op everywhere else and the button explains why.
+  const voice = useVoiceInput((transcript) => send(transcript));
+
   const send = (text: string) => {
     if (!text.trim()) return;
     setDraft('');
     sendChat.mutate(text);
   };
 
-  const voice = useVoiceInput((transcript) => send(transcript));
-
   const handleMicPress = () => {
     if (!voice.supported) {
       Alert.alert(
         'Voice input unavailable',
-        "Voice input needs a development build and isn't available in Expo Go on a phone. It works in a web browser — run the app with `npm run web`."
+        'Voice input works in a web browser — run the app with `npm run web`. Native recording isn\'t available in this build.'
       );
       return;
     }

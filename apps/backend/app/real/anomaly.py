@@ -29,6 +29,8 @@ def detect(readings: list[tuple[datetime, float]]) -> dict | None:
 
     over_days = 0
     excess_total = 0.0
+    flagged_hours = 0
+    hour_hits: dict[int, int] = {}
     per_day: dict = {}
     for ts, v in recent:
         exp = mean[ts.hour]
@@ -38,6 +40,8 @@ def detect(readings: list[tuple[datetime, float]]) -> dict | None:
         if v > hi and exp > 0:
             per_day[d] += 1
             excess_total += v - exp
+            flagged_hours += 1
+            hour_hits[ts.hour] = hour_hits.get(ts.hour, 0) + 1
     for d, n in per_day.items():
         if n >= 4:
             over_days += 1
@@ -48,7 +52,20 @@ def detect(readings: list[tuple[datetime, float]]) -> dict | None:
         "window_start": window_start, "detected_at": latest,
         "excess_kwh": excess_total, "over_days": over_days,
         "severity": "high" if over_days >= 5 else "medium",
+        # Average excess per flagged interval (kW, since readings are hourly
+        # kWh) and the hour-of-day band the excess concentrates in, so
+        # narrative text can say "afternoon" instead of guessing.
+        "avg_excess_kw": excess_total / flagged_hours if flagged_hours else 0.0,
+        "time_of_day": _time_of_day_label(hour_hits),
     }
+
+
+def _time_of_day_label(hour_hits: dict[int, int]) -> str:
+    if not hour_hits:
+        return "daytime"
+    bands = {"overnight": range(0, 6), "morning": range(6, 12), "afternoon": range(12, 18), "evening": range(18, 24)}
+    weight = {name: sum(n for h, n in hour_hits.items() if h in hours) for name, hours in bands.items()}
+    return max(weight, key=weight.get)
 
 
 def interval_bars(readings: list[tuple[datetime, float]], detection: dict, n: int = 14) -> list[dict]:

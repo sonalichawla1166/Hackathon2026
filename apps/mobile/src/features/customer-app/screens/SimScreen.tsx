@@ -64,7 +64,7 @@ export function SimScreen() {
         out in cash.
       </Text>
       <View style={{ marginTop: 9, alignSelf: 'flex-start' }}>
-        <Citation label="Con Edison SC 1 Rider R · p. 18" />
+        <Citation label="PSEG Long Island · Rate 194 · Net Metering Rider" />
       </View>
     </View>
   );

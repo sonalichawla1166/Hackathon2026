@@ -18,13 +18,18 @@ import * as programsApi from './programs';
 import * as salesApi from './sales';
 import * as simulateApi from './simulate';
 import { withOutageCoords } from './geo';
+import * as voiceApi from './voice';
 import type {
   AnomaliesResult,
+  ChatResponse,
+  CopilotAskResult,
   CopilotCall,
   OpsAssets,
   OutageMap,
   PaymentMethods,
   ProgramsResult,
+  SnoozeResult,
+  VoiceAskResult,
 } from './types';
 
 // ---- Account -------------------------------------------------------------
@@ -183,6 +188,25 @@ export function useDispatchAsset() {
   });
 }
 
+export function useSnoozeAsset() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (assetId: string) => opsApi.snoozeAsset(assetId),
+    onSuccess: (result: SnoozeResult, assetId) => {
+      qc.setQueryData<OpsAssets | undefined>(['ops', 'assets'], (prev) =>
+        prev
+          ? {
+              ...prev,
+              assets: prev.assets.map((a) =>
+                a.id === assetId ? { ...a, snoozed: result.snoozed, snoozeLabel: result.snoozeLabel } : a
+              ),
+            }
+          : prev
+      );
+    },
+  });
+}
+
 // ---- Ops: demand response -------------------------------------------------------------
 
 export function useDrCohort(window: number, picks: number[]) {
@@ -221,6 +245,68 @@ export function useUseSuggestion() {
   return useMutation({
     mutationFn: copilotApi.useSuggestion,
     onSuccess: (data: CopilotCall) => qc.setQueryData(['copilot', 'call'], data),
+  });
+}
+
+export function useRephrase() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: copilotApi.rephraseSuggestion,
+    onSuccess: (data: CopilotCall) => qc.setQueryData(['copilot', 'call'], data),
+  });
+}
+
+export function useCopilotAsk() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (text: string) => copilotApi.askByVoice(text),
+    onSuccess: (data: CopilotAskResult) => qc.setQueryData(['copilot', 'call'], data),
+  });
+}
+
+export function useToggleAction() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (action: string) => copilotApi.toggleAction(action),
+    onSuccess: (data: CopilotCall) => qc.setQueryData(['copilot', 'call'], data),
+  });
+}
+
+export function useCompleteCall() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: copilotApi.completeCall,
+    onSuccess: (data: CopilotCall) => qc.setQueryData(['copilot', 'call'], data),
+  });
+}
+
+export function useResetCall() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: copilotApi.resetCall,
+    onSuccess: (data: CopilotCall) => qc.setQueryData(['copilot', 'call'], data),
+  });
+}
+
+// ---- Voice agent (Sarvam AI STT + RAG + TTS) ----------------------------------------
+
+export function useVoiceAsk() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (audioUri: string) => voiceApi.postVoiceAsk(audioUri),
+    onSuccess: (data: VoiceAskResult) => {
+      qc.setQueryData<ChatResponse | undefined>(['chat'], (prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          log: [
+            ...prev.log,
+            { role: 'user', text: data.transcript || '(voice)', cites: null },
+            { role: 'bot', text: data.answer, cites: data.cites },
+          ],
+        };
+      });
+    },
   });
 }
 

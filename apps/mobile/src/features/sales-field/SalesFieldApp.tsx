@@ -36,7 +36,7 @@ const SIDEBAR_ITEMS: readonly SidebarItem<SalesScreen>[] = [
 ];
 
 const SALES_PROFILE_DETAILS = [
-  { label: 'Territory', value: 'Con Edison · Brooklyn North' },
+  { label: 'Territory', value: 'PSEG Long Island · Nassau/Suffolk' },
   { label: 'Access', value: 'Field sales' },
 ] as const;
 

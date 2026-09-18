@@ -7,7 +7,11 @@ import { Surface, SURFACE_LABELS } from '@/state/store';
  * named demo users per surface, each locked to their own workspace, plus one
  * admin account that can sign in as any of them (see `LoginScreen.tsx`).
  *
- * Demo credentials only — there is no backend auth yet (see README.md).
+ * Demo credentials only. Not currently wired into LoginScreen.tsx — real
+ * backend auth (apps/backend/app/auth_store.py) landed separately and only
+ * has the one seeded admin account, so signing in as any of the accounts
+ * below needs them created via /auth/signup first, or this directory wired
+ * to a matching backend seed.
  */
 export interface DemoUser {
   email: string;
@@ -34,32 +38,32 @@ export const ADMIN_USER: AdminUser = {
 export const DEMO_USERS: readonly DemoUser[] = [
   // Customer app — "Maria Alvarez" is the persona the backend already has
   // seeded data for (bills, anomalies, chat history), so she stays first.
-  { email: 'maria.alvarez@conedison.com', password: DEMO_PASSCODE, name: 'Maria Alvarez', role: 'app' },
-  { email: 'james.foster@conedison.com', password: DEMO_PASSCODE, name: 'James Foster', role: 'app' },
-  { email: 'aisha.bello@conedison.com', password: DEMO_PASSCODE, name: 'Aisha Bello', role: 'app' },
-  { email: 'tom.nakamura@conedison.com', password: DEMO_PASSCODE, name: 'Tom Nakamura', role: 'app' },
-  { email: 'priya.sharma@conedison.com', password: DEMO_PASSCODE, name: 'Priya Sharma', role: 'app' },
+  { email: 'maria.alvarez@pseg-li.example', password: DEMO_PASSCODE, name: 'Maria Alvarez', role: 'app' },
+  { email: 'james.foster@pseg-li.example', password: DEMO_PASSCODE, name: 'James Foster', role: 'app' },
+  { email: 'aisha.bello@pseg-li.example', password: DEMO_PASSCODE, name: 'Aisha Bello', role: 'app' },
+  { email: 'tom.nakamura@pseg-li.example', password: DEMO_PASSCODE, name: 'Tom Nakamura', role: 'app' },
+  { email: 'priya.sharma@pseg-li.example', password: DEMO_PASSCODE, name: 'Priya Sharma', role: 'app' },
 
   // Public portal
-  { email: 'chris.romero@conedison.com', password: DEMO_PASSCODE, name: 'Chris Romero', role: 'portal' },
-  { email: 'elena.petrova@conedison.com', password: DEMO_PASSCODE, name: 'Elena Petrova', role: 'portal' },
-  { email: 'sam.oconnor@conedison.com', password: DEMO_PASSCODE, name: "Sam O'Connor", role: 'portal' },
-  { email: 'nina.kapoor@conedison.com', password: DEMO_PASSCODE, name: 'Nina Kapoor', role: 'portal' },
-  { email: 'derek.holt@conedison.com', password: DEMO_PASSCODE, name: 'Derek Holt', role: 'portal' },
+  { email: 'chris.romero@pseg-li.example', password: DEMO_PASSCODE, name: 'Chris Romero', role: 'portal' },
+  { email: 'elena.petrova@pseg-li.example', password: DEMO_PASSCODE, name: 'Elena Petrova', role: 'portal' },
+  { email: 'sam.oconnor@pseg-li.example', password: DEMO_PASSCODE, name: "Sam O'Connor", role: 'portal' },
+  { email: 'nina.kapoor@pseg-li.example', password: DEMO_PASSCODE, name: 'Nina Kapoor', role: 'portal' },
+  { email: 'derek.holt@pseg-li.example', password: DEMO_PASSCODE, name: 'Derek Holt', role: 'portal' },
 
   // Ops dashboard
-  { email: 'jordan.lee@conedison.com', password: DEMO_PASSCODE, name: 'Jordan Lee', role: 'ops' },
-  { email: 'casey.kim@conedison.com', password: DEMO_PASSCODE, name: 'Casey Kim', role: 'ops' },
-  { email: 'morgan.diaz@conedison.com', password: DEMO_PASSCODE, name: 'Morgan Diaz', role: 'ops' },
-  { email: 'riley.okafor@conedison.com', password: DEMO_PASSCODE, name: 'Riley Okafor', role: 'ops' },
-  { email: 'taylor.brooks@conedison.com', password: DEMO_PASSCODE, name: 'Taylor Brooks', role: 'ops' },
+  { email: 'jordan.lee@pseg-li.example', password: DEMO_PASSCODE, name: 'Jordan Lee', role: 'ops' },
+  { email: 'casey.kim@pseg-li.example', password: DEMO_PASSCODE, name: 'Casey Kim', role: 'ops' },
+  { email: 'morgan.diaz@pseg-li.example', password: DEMO_PASSCODE, name: 'Morgan Diaz', role: 'ops' },
+  { email: 'riley.okafor@pseg-li.example', password: DEMO_PASSCODE, name: 'Riley Okafor', role: 'ops' },
+  { email: 'taylor.brooks@pseg-li.example', password: DEMO_PASSCODE, name: 'Taylor Brooks', role: 'ops' },
 
   // Agent copilot
-  { email: 'alex.chen@conedison.com', password: DEMO_PASSCODE, name: 'Alex Chen', role: 'copilot' },
-  { email: 'jordan.blake@conedison.com', password: DEMO_PASSCODE, name: 'Jordan Blake', role: 'copilot' },
-  { email: 'morgan.reyes@conedison.com', password: DEMO_PASSCODE, name: 'Morgan Reyes', role: 'copilot' },
-  { email: 'drew.hassan@conedison.com', password: DEMO_PASSCODE, name: 'Drew Hassan', role: 'copilot' },
-  { email: 'sasha.lund@conedison.com', password: DEMO_PASSCODE, name: 'Sasha Lund', role: 'copilot' },
+  { email: 'alex.chen@pseg-li.example', password: DEMO_PASSCODE, name: 'Alex Chen', role: 'copilot' },
+  { email: 'jordan.blake@pseg-li.example', password: DEMO_PASSCODE, name: 'Jordan Blake', role: 'copilot' },
+  { email: 'morgan.reyes@pseg-li.example', password: DEMO_PASSCODE, name: 'Morgan Reyes', role: 'copilot' },
+  { email: 'drew.hassan@pseg-li.example', password: DEMO_PASSCODE, name: 'Drew Hassan', role: 'copilot' },
+  { email: 'sasha.lund@pseg-li.example', password: DEMO_PASSCODE, name: 'Sasha Lund', role: 'copilot' },
 
   // Field sales — Jamie Ortiz and Sydney Boone match the rep initials
   // ("J. Ortiz" / "S. Boone") already seeded in the door-knock history in

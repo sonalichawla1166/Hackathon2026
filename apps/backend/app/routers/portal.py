@@ -4,8 +4,8 @@ from datetime import timedelta
 
 from fastapi import APIRouter, Query
 
-from ..data import FAQ_DATA, PORTAL_NAV, SUPPORT_CHANNELS, SUPPORT_TOPICS
-from ..real import store, tariff_engine
+from ..data import PORTAL_NAV, SUPPORT_CHANNELS, SUPPORT_TOPICS
+from ..real import faq_engine, store, tariff_engine
 from ..real.config import DEMO_CUSTOMER_ID
 from ..real.db import SessionLocal
 
@@ -101,4 +101,4 @@ def get_portal_solar(kw: float = Query(default=6.0, ge=0, le=12)):
 
 @router.get("/portal/faqs")
 def get_faqs():
-    return {"faqs": FAQ_DATA}
+    return {"faqs": faq_engine.faqs()}

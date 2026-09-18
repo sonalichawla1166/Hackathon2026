@@ -7,21 +7,31 @@ required zero changes** for this merge.
 
 ## Real data vs. mock
 
-Two engines sit behind the same contract:
+Every endpoint is backed by **`app/real/`** — a real SQLAlchemy DB (PSEG
+Long Island customers, meters, 365 days of AMI interval data, tariffs,
+programs, grid assets, outage events), the actual PSEG-LI 2026 residential
+tariff (`data/tariffs.json`, hand-encoded from the real rate guide), a
+statistical anomaly detector, an explainable maintenance risk model, a
+hybrid RAG assistant (Azure OpenAI tool-calling over `search_docs` for narrative
+PSEG-LI documents + `lookup_tariff` for exact rate numbers — see
+`docs/IMPLEMENTATION_PLAN.md` §1.2 at the repo root), and per-customer usage
+features that also drive sales-lead targeting and demand-response cohorts.
 
-- **`app/real/`** — a real SQLAlchemy DB (PSEG Long Island customers, meters,
-  365 days of AMI interval data, tariffs, programs, grid assets), the actual
-  PSEG-LI 2026 residential tariff (`data/tariffs.json`, hand-encoded from the
-  real rate guide), a statistical anomaly detector, an explainable
-  maintenance risk model, and a hybrid RAG assistant (Claude tool-use over
-  `search_docs` for narrative PSEG-LI documents + `lookup_tariff` for exact
-  rate numbers — see `docs/IMPLEMENTATION_PLAN.md` §1.2 at the repo root).
-- **`app/data.py` / `app/formulas.py`** — the original scripted mock content.
+`app/data.py` is what's left of the original prototype's scripted content
+after that migration — only UI chrome with no factual claims (nav labels,
+report-reason checkboxes, payment instrument labels) and the agent-copilot
+call transcript (a scripted phone conversation has no DB row to source it
+from; the facts quoted *within* it are real — see `routers/copilot.py`).
 
-| Endpoint | Backed by |
-|---|---|
-| `/account/summary`, `/chat`, `/bill/explain`, `/simulate`, `/anomalies*`, `/programs*`, `/ops/assets`, `/ops/assets/{id}/dispatch`, `/portal/rates`, `/portal/solar` | **real** (`app/real/`) |
-| `/outages/*`, `/payments/*`, `/ops/dr*`, `/copilot/*`, `/sales/*`, `/portal/nav`, `/portal/faqs` | mock (`app/data.py`) — no real backing yet, candidates for the same treatment later |
+| Endpoint | Backed by | Notes |
+|---|---|---|
+| `/account/summary`, `/chat`, `/bill/explain`, `/simulate`, `/anomalies*`, `/programs*`, `/ops/assets`, `/ops/assets/{id}/dispatch`, `/ops/assets/{id}/snooze`, `/portal/rates`, `/portal/solar`, `/auth/login`, `/voice/ask` | real | DB + tariff engine + RAG + Sarvam STT/TTS |
+| `/copilot/*` | real | RAG-grounded suggestions, real customer/bill/anomaly facts; call transcript is scripted (see above) |
+| `/portal/faqs` | real | pre-asked once against the real RAG engine, cached |
+| `/sales/*` | real | leads = real customers scored against the real program-eligibility engine; rep base is Uniondale/Hicksville, NY |
+| `/outages/*` | real | queries + writes the `outages` table (seeded, previously unused) |
+| `/ops/dr*` | real | cohort filters are real per-customer AMI-derived booleans, scaled from the 120-customer sample to PSEG-LI's ~1.1M-customer footprint |
+| `/payments/*` | real amounts, illustrative instrument | amount/due date from the real tariff engine; card/bank labels are placeholders — no payment gateway is integrated |
 
 The demo customer behind every real-data screen is **CUST-0001 = "Maria
 Alvarez"** (matches the existing app copy/persona), on PSEG-LI Rate 194. The
@@ -42,7 +52,7 @@ python3 -m venv .venv
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
-cp .env.example .env        # add ANTHROPIC_API_KEY for live chat narration (optional)
+cp .env.example .env        # add AZURE_OPENAI_ENDPOINT/AZURE_OPENAI_KEY for live chat narration (optional)
 python seed.py               # builds utility.db (deterministic, ~1M AMI rows)
 python ingest.py             # embeds the PSEG-LI corpus into chroma_db/
 ```
@@ -68,8 +78,8 @@ working later, install the
 [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
 and then `pip install chromadb`.
 
-`/chat` works even without `ANTHROPIC_API_KEY` — it falls back to
-retrieval-only (a real citation + passage, no LLM narration).
+`/chat` works even without `AZURE_OPENAI_ENDPOINT`/`AZURE_OPENAI_KEY` — it
+falls back to retrieval-only (a real citation + passage, no LLM narration).
 
 ## Run it
 

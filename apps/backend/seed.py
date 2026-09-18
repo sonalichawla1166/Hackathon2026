@@ -20,7 +20,7 @@ from faker import Faker  # noqa: E402
 
 from app.real.config import settings  # noqa: E402
 from app.real.db import (  # noqa: E402
-    AmiReading, Asset, Base, Customer, Meter, Program, Tariff,
+    AmiReading, Asset, Base, Customer, Meter, Outage, Program, Tariff,
     SessionLocal, engine,
 )
 
@@ -141,7 +141,8 @@ def main() -> None:
         lon = float(rng.uniform(*LON))
         db.add(Customer(
             id=cid, utility=settings.utility, name=name,
-            email=fake.email(), address=fake.street_address(),
+            email=fake.email(), phone=fake.numerify("(516) 555-####") if rng.random() < 0.5 else fake.numerify("(631) 555-####"),
+            address=fake.street_address(),
             city=fake.city(), zip=fake.zipcode(), lat=lat, lon=lon,
             account_type="residential", rate_code=rate, persona=persona,
             is_hero=is_hero,
@@ -193,8 +194,30 @@ def main() -> None:
         ))
 
     db.commit()
+
+    # ---- outage events (backs /outages/map and /outages/report) ----
+    # A handful of active + recently-resolved events scattered across the same
+    # Nassau/Suffolk footprint as the customers and assets above, so distance
+    # from any given customer is a real (if synthetic) geographic calculation
+    # rather than a fixed schematic pin.
+    causes = ["Downed line (storm damage)", "Equipment failure", "Vehicle strike on pole", "Planned maintenance", "Tree contact"]
+    areas = ["Nassau", "Suffolk", "Nassau", "Suffolk"]
+    for i in range(1, 9):
+        status = "active" if i <= 5 else "resolved"
+        start = END - timedelta(hours=int(rng.integers(1, 48)))
+        db.add(Outage(
+            id=f"OUT-{40900 + i}", utility=settings.utility,
+            ts_start=start,
+            ts_end=None if status == "active" else start + timedelta(hours=float(rng.uniform(1, 6))),
+            lat=float(rng.uniform(*LAT)), lon=float(rng.uniform(*LON)),
+            area=str(rng.choice(areas)), cause=str(rng.choice(causes)),
+            customers_affected=int(rng.integers(15, 2400)),
+            status=status,
+        ))
+
+    db.commit()
     db.close()
-    print(f"Seeded {N_CUSTOMERS} customers, {len(reading_rows):,} readings, 60 assets. "
+    print(f"Seeded {N_CUSTOMERS} customers, {len(reading_rows):,} readings, 60 assets, 8 outage events. "
           f"Heroes: {list(HEROES.keys())} (CUST-0001 = Maria Alvarez, the app's demo customer)")
 
 

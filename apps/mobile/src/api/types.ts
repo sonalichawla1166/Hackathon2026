@@ -108,6 +108,8 @@ export interface OutageMap {
   caption: string;
   portalCaption: string;
   options: string[];
+  address: string;
+  meter: string;
 }
 
 export interface OutageReportResult {
@@ -188,6 +190,8 @@ export interface OpsAsset {
   riskColorValue: string;
   dispatched: boolean;
   dispatchLabel: string;
+  snoozed: boolean;
+  snoozeLabel: string;
 }
 
 export interface OpsAssets {
@@ -200,6 +204,20 @@ export interface DispatchResult {
   id: string;
   dispatched: boolean;
   dispatchLabel: string;
+}
+
+export interface SnoozeResult {
+  id: string;
+  snoozed: boolean;
+  snoozeLabel: string;
+}
+
+export interface VoiceAskResult {
+  transcript: string;
+  answer: string;
+  cites: string[];
+  audio_b64: string;
+  tts_available: boolean;
 }
 
 export interface OpsDr {
@@ -260,18 +278,42 @@ export interface CopilotSuggestion {
   chunks: RetrievedChunk[];
 }
 
+export interface CopilotAction {
+  text: string;
+  done: boolean;
+}
+
+export interface CopilotSummary {
+  headline: string;
+  durationLabel: string;
+  stats: { k: string; v: string }[];
+}
+
 export interface CopilotCall {
   callTimer: string;
+  /** Epoch seconds; the client ticks its own clock from this. */
+  callStartedAt: number | null;
+  callEndedAt: number | null;
   customer: { name: string; account: string; address: string };
   transcript: { who: string; text: string }[];
   facts: { k: string; v: string }[];
   openAnomaly: string;
   suggestion: CopilotSuggestion;
   advanceLabel: string;
+  /** The scripted opening has been fully advanced through. */
   callComplete: boolean;
+  /** The agent ended the call; `summary` is populated. */
+  callEnded: boolean;
   used: boolean;
   useLabel: string;
-  nextActions: string[];
+  nextActions: CopilotAction[];
+  summary: CopilotSummary | null;
+}
+
+// POST /copilot/ask returns the full call payload (suggestion updated in
+// place, same as rephrase) plus the spoken answer as base64 WAV.
+export interface CopilotAskResult extends CopilotCall {
+  audio_b64: string;
 }
 
 // ---- Field sales / door-to-door -------------------------------------------

@@ -2,19 +2,20 @@ import { useEffect, useState } from 'react';
 import * as Location from 'expo-location';
 import { useUiStore } from '@/state/store';
 
-// Matches the backend's SALES_REP_BASE fallback (apps/backend/app/data.py)
-// so leads/distances stay consistent while on the territory base, and so
-// there's always a sensible default even off-device (web preview) or when
-// permission is denied.
-const FALLBACK = { lat: 40.7638, lng: -73.9918 };
+// Matches the backend's SALES_REP_BASE fallback (Uniondale/Hicksville, NY —
+// apps/backend/app/real/sales_engine.py) so leads/distances stay consistent
+// while on the territory base, and so there's always a sensible default
+// even off-device (web preview) or when permission is denied.
+const FALLBACK = { lat: 40.7684, lng: -73.5251 };
 
 export type LocationStatus = 'idle' | 'requesting' | 'granted' | 'denied' | 'unavailable';
 
 // Location is opt-in (via `locationMode` in the store) rather than
-// requested automatically: the mock lead book is anchored around NYC, so a
-// rep whose device is anywhere else would silently see zero leads with a
-// real-GPS default. Defaulting to the assigned territory base always shows
-// something; "use my current location" is one explicit tap away.
+// requested automatically: the real lead book is anchored around the
+// Nassau/Suffolk customer footprint, so a rep whose device is anywhere else
+// would silently see zero leads with a real-GPS default. Defaulting to the
+// assigned territory base always shows something; "use my current
+// location" is one explicit tap away.
 export function useSalesLocation() {
   const mode = useUiStore((s) => s.locationMode);
   const setMode = useUiStore((s) => s.setLocationMode);

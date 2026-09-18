@@ -33,6 +33,13 @@ export const API_BASE_URL = resolveBaseUrl();
 // see state/store.ts's `token` field, persisted so it survives an app reload.
 const FALLBACK_SESSION_ID = `mobile-${Math.random().toString(36).slice(2)}-${Date.now().toString(36)}`;
 
+// Exported so callers that can't go through apiGet/apiPost (e.g. voice.ts's
+// multipart upload, which needs to build its own fetch() call) still send
+// the same session id the rest of the app uses.
+export function getSessionId(): string {
+  return useUiStore.getState().token ?? FALLBACK_SESSION_ID;
+}
+
 // FastAPI error bodies are JSON: {"detail": "some message"} for a raised
 // HTTPException, or {"detail": [{"msg": "...", ...}, ...]} for a pydantic
 // validation failure (422). Pull the human-readable string out of either
@@ -60,7 +67,7 @@ export class ApiError extends Error {
 }
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const sessionId = useUiStore.getState().token ?? FALLBACK_SESSION_ID;
+  const sessionId = getSessionId();
   const res = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
     headers: {

@@ -4,9 +4,7 @@ from sqlalchemy import select
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from ..data import LEADS, SALES_REP_BASE
-from ..formulas import dr_cohort, leads_in_range
-from ..real import anomaly, maintenance as real_maintenance, store
+from ..real import anomaly, dr_engine, maintenance as real_maintenance, sales_engine, store
 from ..real.config import ANOMALY_CUSTOMER_ID
 from ..real.db import Asset, SessionLocal
 from ..session import Session, current_session
@@ -40,6 +38,8 @@ def get_assets(session: Session = Depends(current_session)):
             "riskColorValue": "#D98D95" if s["band"] == "high" else "#D9B98A" if s["band"] == "medium" else "#938DA6",
             "dispatched": a.id in session.dispatched_ids,
             "dispatchLabel": "Queued for crew 14" if a.id in session.dispatched_ids else "Add to inspection queue",
+            "snoozed": a.id in session.snoozed_ids,
+            "snoozeLabel": "Snoozed 7 days" if a.id in session.snoozed_ids else "Snooze 7 days",
         })
     scored.sort(key=lambda x: x["riskPct"], reverse=True)
     return {
@@ -61,15 +61,19 @@ def dispatch_asset(asset_id: str, session: Session = Depends(current_session)):
     return {"id": asset_id, "dispatched": True, "dispatchLabel": "Queued for crew 14"}
 
 
-# --- Demand response: not backed by real data yet (no DR cohort model in the
-# real engine) — kept on the original mock formulas. Flagged as remaining
-# work in the merge report. ---
+@router.post("/ops/assets/{asset_id}/snooze")
+def snooze_asset(asset_id: str, session: Session = Depends(current_session)):
+    if not any(a.id == asset_id for a in _real_assets()):
+        raise HTTPException(status_code=404, detail="No such asset")
+    session.snoozed_ids.add(asset_id)
+    return {"id": asset_id, "snoozed": True, "snoozeLabel": "Snoozed 7 days"}
+
 
 @router.get("/ops/dr")
 def get_dr(window: int = Query(default=1, ge=0, le=2), picks: str = Query(default="0,3")):
     pick_list = [int(p) for p in picks.split(",") if p.strip() != ""] if picks else []
-    cohort = dr_cohort(pick_list)
-    dr_count = cohort["drCount"]
+    result = dr_engine.cohort(pick_list)
+    dr_count = result["drCount"]
     payload_json = (
         "{\n"
         '  "event": "DR-2026-10-14",\n'
@@ -81,11 +85,11 @@ def get_dr(window: int = Query(default=1, ge=0, le=2), picks: str = Query(defaul
     return {
         "windows": DR_WINDOW_LABELS,
         "drCount": f"{dr_count:,}",
-        "curve": cohort["curve"],
+        "curve": result["curve"],
         "stats": [
-            {"k": "Expected curtailment", "v": f"{cohort['mw']:.1f} MW"},
-            {"k": "Forecast opt-in", "v": f"{round(dr_count * 0.62):,} (62%)"},
-            {"k": "Incentive cost", "v": f"${round(dr_count * 0.62 * 25):,}"},
+            {"k": "Expected curtailment", "v": f"{result['mw']:.1f} MW"},
+            {"k": "Forecast opt-in", "v": f"{result['optIn']:,} (62%)"},
+            {"k": "Incentive cost", "v": f"${result['incentiveCost']:,}"},
         ],
         "payload": payload_json,
     }
@@ -105,11 +109,10 @@ def get_impact(session: Session = Depends(current_session)):
     rows = _real_assets()
     high_risk = sum(1 for a in rows if real_maintenance.score(a)["risk"] >= 0.66)
 
-    cohort = dr_cohort([0, 3])
-    dr_count = cohort["drCount"]
+    cohort = dr_engine.cohort([0, 3])
 
-    leads = leads_in_range(
-        LEADS, SALES_REP_BASE["lat"], SALES_REP_BASE["lng"], 10.0,
+    leads = sales_engine.leads_in_range(
+        sales_engine.SALES_REP_BASE["lat"], sales_engine.SALES_REP_BASE["lng"], 10.0,
         session.sales_visits, session.lead_stage_overrides,
     )
     knocked_today = [l for l in leads if l["knockedToday"]]
@@ -155,7 +158,7 @@ def get_impact(session: Session = Depends(current_session)):
                 "title": "Demand response",
                 "stats": [
                     {"k": "Expected curtailment", "v": f"{cohort['mw']:.1f} MW"},
-                    {"k": "Incentive cost avoided", "v": f"${round(dr_count * 0.62 * 25):,}"},
+                    {"k": "Incentive cost avoided", "v": f"${cohort['incentiveCost']:,}"},
                 ],
             },
             {

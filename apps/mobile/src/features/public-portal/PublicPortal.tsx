@@ -23,7 +23,7 @@ import { OutagesSection } from './sections/OutagesSection';
 import { SupportSection } from './sections/SupportSection';
 
 /**
- * Public portal surface — a marketing/self-service page at conedison.com,
+ * Public portal surface — PSEG Long Island's marketing/self-service page,
  * ported from `OneGridAI Platform.dc.html` (isPortal block, lines ~423-557).
  * No account needed: a usage slider prices the three residential rate
  * plans, a solar comparison, an FAQ accordion and a read-only "Ask
@@ -48,7 +48,7 @@ const PORTAL_SIDEBAR: readonly SidebarItem<PortalView>[] = [
 ];
 
 const PORTAL_PROFILE_DETAILS = [
-  { label: 'Utility', value: 'Con Edison' },
+  { label: 'Utility', value: 'PSEG Long Island' },
   { label: 'Access', value: 'Public self-service' },
 ] as const;
 
@@ -72,7 +72,7 @@ function PortalWide() {
     <View style={styles.shell}>
       <PageWash />
       <SurfaceHeader
-        eyebrow="Con Edison · Powered by OneGridAI"
+        eyebrow="PSEG Long Island · Powered by OneGridAI"
         title={PORTAL_TITLES[portalView]}
         profileDetails={PORTAL_PROFILE_DETAILS}
         showAccountControls={false}
@@ -85,7 +85,7 @@ function PortalWide() {
           onPick={setPortalView}
           collapsed={collapsed}
           onToggleCollapsed={() => setCollapsed((c) => !c)}
-          footnote="Prices are modelled against the filed Con Edison tariff. Indicative, not a quotation."
+          footnote="Prices are modelled against the filed PSEG Long Island tariff. Indicative, not a quotation."
         />
 
         <ScrollView style={styles.scroll} contentContainerStyle={styles.wideContent} {...hiddenScrollbar}>
@@ -133,7 +133,7 @@ function TopNav({ compact }: { compact: boolean }) {
     <View style={[styles.nav, { paddingHorizontal: compact ? 20 : 40 }]}>
       <View style={styles.navLeft}>
         <CgInfinityLogo size={compact ? 26 : 30} withWordmark={false} />
-        <Text style={styles.wordmark}>Con Edison</Text>
+        <Text style={styles.wordmark}>PSEG Long Island</Text>
         {!compact && !!data && (
           <View style={styles.navItems}>
             {data.nav.map((n) => (

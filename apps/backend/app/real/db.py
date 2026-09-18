@@ -30,6 +30,7 @@ class Customer(Base):
     utility = Column(String, index=True, default="PSEG-LI")
     name = Column(String)
     email = Column(String)
+    phone = Column(String)
     address = Column(String)
     city = Column(String)
     zip = Column(String)

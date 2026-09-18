@@ -1,5 +1,5 @@
 import { apiGet, apiPost } from './client';
-import type { DispatchResult, DrQueueResult, OpsAssets, OpsDr, OpsImpact } from './types';
+import type { DispatchResult, DrQueueResult, OpsAssets, OpsDr, OpsImpact, SnoozeResult } from './types';
 
 export function getOpsAssets(): Promise<OpsAssets> {
   return apiGet<OpsAssets>('/ops/assets');
@@ -11,6 +11,10 @@ export function getOpsImpact(): Promise<OpsImpact> {
 
 export function dispatchAsset(assetId: string): Promise<DispatchResult> {
   return apiPost<DispatchResult>(`/ops/assets/${encodeURIComponent(assetId)}/dispatch`);
+}
+
+export function snoozeAsset(assetId: string): Promise<SnoozeResult> {
+  return apiPost<SnoozeResult>(`/ops/assets/${encodeURIComponent(assetId)}/snooze`);
 }
 
 export function getDrCohort(window: number, picks: number[]): Promise<OpsDr> {

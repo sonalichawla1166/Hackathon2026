@@ -14,8 +14,6 @@ from threading import Lock
 
 from fastapi import Header
 
-from .data import find_kb_hit, free_ask_hit
-
 
 @dataclass
 class ChatMessage:
@@ -41,9 +39,23 @@ class Session:
     reported: bool = False
     paid: bool = False
     dispatched_ids: set[str] = field(default_factory=set)
+    snoozed_ids: set[str] = field(default_factory=set)
 
     call_idx: int = 2
     used: bool = False
+    # Live call state layered on the scripted CALL: the running transcript
+    # (scripted lines + spoken questions + inserted answers), when the call
+    # started/ended, which next-best-actions the agent has ticked off, and
+    # the wrap-up summary generated once at end-of-call.
+    copilot_transcript: list[dict] = field(default_factory=list)
+    copilot_seeded: bool = False
+    call_started_at: float | None = None
+    call_ended_at: float | None = None
+    copilot_actions_done: set[str] = field(default_factory=set)
+    copilot_summary: dict | None = None
+    # Cache real-RAG copilot suggestions per call_idx so advancing doesn't re-call the LLM.
+    # {call_idx: {"text": str, "cites": list[str], "chunks": list[dict]}}
+    copilot_cache: dict[int, dict] = field(default_factory=dict)
 
     # Field sales: leadId -> list of {date, outcome, rep, notes} knocked
     # during this session, layered on top of each lead's seed history.
@@ -71,33 +83,10 @@ class Session:
     def set_stage(self, lead_id: str, stage: str) -> None:
         self.lead_stage_overrides[lead_id] = stage
 
-    def ask(self, question: str) -> ChatMessage:
-        hit = find_kb_hit(question)
-        self.log.append(ChatMessage(role="user", text=question))
-        self.asked.append(question)
-        reply = ChatMessage(role="bot", text=hit.a, cites=hit.cites)
-        self.log.append(reply)
-        return reply
-
-    def free_ask(self, message: str) -> ChatMessage:
-        hit = free_ask_hit(message)
-        self.log.append(ChatMessage(role="user", text=message))
-        if hit:
-            reply = ChatMessage(role="bot", text=hit.a, cites=hit.cites)
-        else:
-            reply = ChatMessage(
-                role="bot",
-                text="I could not ground that in your account or the tariff index yet. In the built version this falls back to a handoff with the transcript attached.",
-                cites=["Retrieval confidence below threshold"],
-            )
-        self.log.append(reply)
-        return reply
-
     def real_ask(self, question: str, answer: str, cites: list[str]) -> ChatMessage:
-        """Like ask()/free_ask() but backed by the real hybrid RAG engine
-        (app.real.chat_engine) instead of the static KB — the router supplies
-        the already-computed answer/cites so this method stays a pure log
-        mutation, matching ask()/free_ask()'s shape."""
+        """Append a real hybrid-RAG exchange (app.real.chat_engine) to the
+        log — the router supplies the already-computed answer/cites so this
+        method stays a pure log mutation."""
         self.log.append(ChatMessage(role="user", text=question))
         self.asked.append(question)
         reply = ChatMessage(role="bot", text=answer, cites=cites or None)

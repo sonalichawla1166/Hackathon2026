@@ -10,9 +10,17 @@ class RealSettings(BaseSettings):
         env_file=str(BACKEND_DIR / ".env"), env_file_encoding="utf-8", extra="ignore"
     )
 
-    anthropic_api_key: str = ""
-    chat_model: str = "claude-sonnet-5"
-    cheap_model: str = "claude-haiku-4-5-20251001"
+    azure_openai_endpoint: str = ""
+    azure_openai_key: str = ""
+    azure_openai_api_version: str = "2024-10-21"
+    # These are Azure *deployment* names, not raw model names — Azure OpenAI
+    # routes requests by deployment, so these must match whatever you named
+    # the deployment in Azure OpenAI Studio (commonly the same as the
+    # underlying model, e.g. "gpt-4o-mini").
+    chat_model: str = "gpt-4o-mini"
+    cheap_model: str = "gpt-4o-mini"
+
+    sarvam_api_key: str = ""
 
     corpus_dir: str = "D:/projects/utility-rag/data"
     provider_folder: str = "PSEG Long Island"

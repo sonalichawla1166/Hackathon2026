@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from ..data import KNOCK_OUTCOMES, LEADS, LEADS_BY_ID, SALES_REP_BASE, SALES_STAGES
-from ..formulas import lead_summary, leads_in_range, pipeline_board, suggested_route
+from ..real import sales_engine
+from ..real.sales_engine import KNOCK_OUTCOMES, SALES_REP_BASE, SALES_STAGES
 from ..schemas import KnockRequest, StageRequest
 from ..session import Session, current_session
 
@@ -17,7 +17,7 @@ def get_leads(
     radiusKm: float = Query(default=10.0, ge=1, le=50),
     session: Session = Depends(current_session),
 ):
-    leads = leads_in_range(LEADS, lat, lng, radiusKm, session.sales_visits, session.lead_stage_overrides)
+    leads = sales_engine.leads_in_range(lat, lng, radiusKm, session.sales_visits, session.lead_stage_overrides)
     knocked_today = [l for l in leads if l["knockedToday"]]
     sold_today = [l for l in knocked_today if l["lastOutcome"] == "Sold"]
     return {
@@ -36,22 +36,17 @@ def get_leads(
 
 @router.get("/sales/leads/{lead_id}")
 def get_lead_detail(lead_id: str, session: Session = Depends(current_session)):
-    lead = LEADS_BY_ID.get(lead_id)
-    if lead is None:
+    detail = sales_engine.lead_detail(lead_id, session.sales_visits, session.lead_stage_overrides)
+    if detail is None:
         raise HTTPException(status_code=404, detail="No such lead")
-    summary = lead_summary(
-        lead, SALES_REP_BASE["lat"], SALES_REP_BASE["lng"], 10.0, session.sales_visits.get(lead_id, []), session.lead_stage_overrides
-    )
-    history = [{"date": v.date, "outcome": v.outcome, "rep": v.rep, "notes": v.notes} for v in lead.history]
-    history += session.sales_visits.get(lead_id, [])
+    history = list(session.sales_visits.get(lead_id, []))
     history.sort(key=lambda v: v["date"], reverse=True)
-    return {**summary, "history": history, "stages": SALES_STAGES}
+    return {**detail, "history": history, "stages": SALES_STAGES}
 
 
 @router.post("/sales/leads/{lead_id}/knock")
 def knock_lead(lead_id: str, body: KnockRequest, session: Session = Depends(current_session)):
-    lead = LEADS_BY_ID.get(lead_id)
-    if lead is None:
+    if not sales_engine.lead_exists(lead_id):
         raise HTTPException(status_code=404, detail="No such lead")
     if body.outcome not in KNOCK_OUTCOMES:
         raise HTTPException(status_code=422, detail=f"outcome must be one of {KNOCK_OUTCOMES}")
@@ -62,8 +57,7 @@ def knock_lead(lead_id: str, body: KnockRequest, session: Session = Depends(curr
 
 @router.post("/sales/leads/{lead_id}/stage")
 def set_lead_stage(lead_id: str, body: StageRequest, session: Session = Depends(current_session)):
-    lead = LEADS_BY_ID.get(lead_id)
-    if lead is None:
+    if not sales_engine.lead_exists(lead_id):
         raise HTTPException(status_code=404, detail="No such lead")
     if body.stage not in SALES_STAGES:
         raise HTTPException(status_code=422, detail=f"stage must be one of {SALES_STAGES}")
@@ -74,7 +68,7 @@ def set_lead_stage(lead_id: str, body: StageRequest, session: Session = Depends(
 
 @router.get("/sales/pipeline")
 def get_pipeline(session: Session = Depends(current_session)):
-    result = pipeline_board(LEADS, SALES_STAGES, SALES_REP_BASE["lat"], SALES_REP_BASE["lng"], session.sales_visits, session.lead_stage_overrides)
+    result = sales_engine.pipeline_board(SALES_STAGES, session.sales_visits, session.lead_stage_overrides)
     return {"stages": SALES_STAGES, "board": result["board"], "counts": result["counts"]}
 
 
@@ -85,13 +79,13 @@ def get_stats(
     radiusKm: float = Query(default=10.0, ge=1, le=50),
     session: Session = Depends(current_session),
 ):
-    leads = leads_in_range(LEADS, lat, lng, radiusKm, session.sales_visits, session.lead_stage_overrides)
+    leads = sales_engine.leads_in_range(lat, lng, radiusKm, session.sales_visits, session.lead_stage_overrides)
     knocked_today = [l for l in leads if l["knockedToday"]]
     sold_today = [l for l in knocked_today if l["lastOutcome"] == "Sold"]
     conversion = round(len(sold_today) / len(knocked_today) * 100) if knocked_today else 0
     remaining = [l for l in leads if not l["knockedToday"]]
-    route = suggested_route(remaining, lat, lng)
-    pipeline = pipeline_board(LEADS, SALES_STAGES, lat, lng, session.sales_visits, session.lead_stage_overrides)
+    route = sales_engine.suggested_route(remaining, lat, lng)
+    pipeline = sales_engine.pipeline_board(SALES_STAGES, session.sales_visits, session.lead_stage_overrides)
     return {
         "today": [
             {"k": "Doors knocked", "v": str(len(knocked_today))},
